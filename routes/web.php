@@ -1,0 +1,53 @@
+<?php
+
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\PermissionController;
+use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\User\ChangePasswordController;
+use App\Http\Controllers\User\UserDashboardController;
+use App\Http\Controllers\User\UserProfileController;
+use Illuminate\Support\Facades\Route;
+
+
+//
+//Route::get('/dashboard', function () {
+//    return view('dashboard');
+//})->middleware(['auth', 'verified'])->name('dashboard');
+//
+//Route::middleware('auth')->group(function () {
+//    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+//    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+//    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+//});
+
+Route::get('/', function () {
+    return view('welcome');
+});
+
+//DASHBOARD DO USUÁRIO PADRÃO
+Route::middleware(['auth'])->prefix('user')->group(function () {
+    Route::get('/dashboard', [UserDashboardController::class, 'index'])->name('user.dashboard');
+});
+
+//TELAS DO PERFIL DE USUÁRIO
+Route::middleware(['auth'])->prefix('user')->group(function () {
+    Route::get('/profile', [UserProfileController::class, 'edit'])->name('user.profile');
+    Route::post('/profile/update', [UserProfileController::class, 'update'])->name('user.profile.update');
+});
+
+//TELA PARA O USUÁRIO ALTERAR SUA PRÓPRIA SENHA
+Route::middleware(['auth'])->prefix('user')->group(function () {
+    Route::get('/change-password', [ChangePasswordController::class, 'edit'])->name('user.change-password');
+    Route::post('/change-password', [ChangePasswordController::class, 'update'])->name('user.change-password.update');
+});
+
+Route::middleware(['auth', 'permission:acessar_admin'])->prefix('admin')->group(function () {
+    Route::get('/', [DashboardController::class, 'index'])->name('admin.dashboard');
+
+    Route::resource('users', UserController::class);
+    Route::resource('roles', RoleController::class);
+    Route::resource('permissions', PermissionController::class);
+});
+
+require __DIR__.'/auth.php';
