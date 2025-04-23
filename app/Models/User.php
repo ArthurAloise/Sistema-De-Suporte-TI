@@ -50,4 +50,15 @@ class User extends Authenticatable
     {
         return $this->role && $this->role->name === $roleName;
     }
+
+    // Adição de relação dos tickets para com os usuários e técnicos
+    public function ticketsCriados()
+    {
+        return $this->hasMany(Ticket::class, 'usuario_id');
+    }
+
+    public function ticketsAtribuidos()
+    {
+        return $this->hasMany(Ticket::class, 'tecnico_id');
+    }
 }
