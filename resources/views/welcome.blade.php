@@ -303,7 +303,7 @@
         <div class="footer-logo">
             <img src="{{ asset('logo_chamado.png') }}" alt="Logo Suporte Técnico" width="200">
         </div>
-        <p>Nós cuidamos de toda a tecnologia enquanto você foca no seu negócio(TEM QUE ALTERAR ESSE CARALHO).</p>
+        <p>Nós cuidamos de toda a tecnologia enquanto você foca no seu negócio.</p>
         <div class="social-icons">
             <a href="#"><i class="fab fa-facebook"></i></a>
             <a href="#"><i class="fab fa-instagram"></i></a>
@@ -324,15 +324,15 @@
     </div>
     <div class="footer-column">
         <ul>
-            <li>contato@ftconsult.com.br</li>
-            <li>+55 (11) 4858-4850</li>
-            <li>Rua Pedroso Alvarenga, nº 1046, 16º andar – Itaim Bibi/SP.</li>
+            <li>contato@gmail.com.br</li>
+            <li>+55 (69) 4858-4850</li>
+            <li>Rua Av. Carlos Gomes, nº 1046, 16º andar – Porto Velho/RO.</li>
         </ul>
         <a href="#" class="footer-button">Fale Conosco</a>
     </div>
 </footer>
 <div class="footer-bottom">
-    ©2025 Todos os direitos reservados - Desenvolvido por jumplab.co
+    ©2025 Todos os direitos reservados
 </div>
 </body>
 </html>

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\TicketController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
@@ -49,5 +50,9 @@ Route::middleware(['auth', 'permission:acessar_admin'])->prefix('admin')->group(
     Route::resource('roles', RoleController::class);
     Route::resource('permissions', PermissionController::class);
 });
+
+Route::resource('tickets', TicketController::class)->middleware('auth');
+Route::post('/tickets/{id}/assign', [TicketController::class, 'assignTechnician'])->name('tickets.assign');
+Route::post('/tickets/{id}/mark-as-completed', [TicketController::class, 'markAsCompleted'])->name('tickets.markAsCompleted');
 
 require __DIR__.'/auth.php';

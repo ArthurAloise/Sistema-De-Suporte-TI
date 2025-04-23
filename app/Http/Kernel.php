@@ -36,6 +36,7 @@ class Kernel extends HttpKernel
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \App\Http\Middleware\LogRequestMiddleware::class, // Aplicar o middleware de Log em todas as requisições
         ],
 
         'api' => [
@@ -68,6 +69,6 @@ class Kernel extends HttpKernel
 
     protected $routeMiddleware = [
         'permission' => \App\Http\Middleware\CheckPermission::class,
+        'log.request' => \App\Http\Middleware\LogRequestMiddleware::class, //Adicionando o Log
     ];
-
 }

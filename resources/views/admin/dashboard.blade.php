@@ -18,7 +18,7 @@
                     <div class="card-body text-center">
                         <i class="fas fa-users" style="font-size: 40px;"></i>
                         <h5 class="fw-bold mt-3">Usuários</h5>
-                        <p> Usuários registrados</p> {{--{{ $userCount }}--}}
+                        <p> Usuários registrados: {{ $userCount }}</p> {{--{{ $userCount }}--}}
                         <a href="{{ route('users.index') }}" class="btn btn-light w-100">Gerenciar</a>
                     </div>
                 </div>
@@ -30,7 +30,7 @@
                     <div class="card-body text-center">
                         <i class="fas fa-clipboard-list" style="font-size: 40px;"></i>
                         <h5 class="fw-bold mt-3">Chamados</h5>
-                        <p> Chamados abertos</p> {{--{{ $openTicketsCount }}--}}
+                        <p> Chamados abertos: {{ $openTicketsCount }}</p> {{--{{ $openTicketsCount }}--}}
                         <a href="" class="btn btn-light w-100">Gerenciar</a> {{--{{ route('admin.tickets.index') }}--}}
                     </div>
                 </div>
