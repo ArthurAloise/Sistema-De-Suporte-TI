@@ -88,6 +88,9 @@
                 @if($tickets_abertos->isEmpty())
                     <p class="text-muted text-center">Você não abriu nenhum chamado recentemente.</p>
                 @endif
+                <div class="d-flex justify-content-center mt-3">
+                    {{ $tickets_abertos->links('pagination::bootstrap-4') }}
+                </div>
             </div>
         </div>
 
@@ -135,6 +138,9 @@
                 @if($tickets_atribuido->isEmpty())
                     <p class="text-muted text-center">Você não tem chamados atribuídos a você.</p>
                 @endif
+                <div class="d-flex justify-content-center mt-3">
+                    {{ $tickets_atribuido->links('pagination::bootstrap-4') }}
+                </div>
             </div>
         </div>
     </div>

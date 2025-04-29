@@ -49,10 +49,13 @@ Route::middleware(['auth', 'permission:acessar_admin'])->prefix('admin')->group(
     Route::resource('users', UserController::class);
     Route::resource('roles', RoleController::class);
     Route::resource('permissions', PermissionController::class);
+
+    Route::get('/logs', [App\Http\Controllers\Admin\LogController::class, 'index'])->name('admin.logs');
 });
 
 Route::resource('tickets', TicketController::class)->middleware('auth');
 Route::post('/tickets/{id}/assign', [TicketController::class, 'assignTechnician'])->name('tickets.assign');
 Route::post('/tickets/{id}/mark-as-completed', [TicketController::class, 'markAsCompleted'])->name('tickets.markAsCompleted');
+Route::post('/tickets/{id}/update-technician', [TicketController::class, 'updateTechnician'])->name('tickets.updateTechnician');
 
 require __DIR__.'/auth.php';

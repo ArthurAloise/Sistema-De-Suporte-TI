@@ -66,8 +66,8 @@
             <div class="col-md-4">
                 <div class="card shadow-sm border-0">
                     <div class="card-body text-center">
-                        <h5 class="fw-bold">Adicionar Novo Usuário</h5>
-                        <a href="" class="btn btn-outline-primary w-100">Criar Usuário</a> {{--{{ route('admin.users.create') }}--}}
+                        <h5 class="fw-bold">DECIDIR O QUE COLOCAR AQUI </h5>
+                        <a href="" class="btn btn-outline-primary w-100">DECIDIR, COPO STANLEY!</a> {{--{{ route('admin.users.create') }}--}}
                     </div>
                 </div>
             </div>
@@ -75,8 +75,8 @@
             <div class="col-md-4">
                 <div class="card shadow-sm border-0">
                     <div class="card-body text-center">
-                        <h5 class="fw-bold">Gerenciar Chamados</h5>
-                        <a href="" class="btn btn-outline-warning w-100">Ver Chamados</a> {{--{{ route('admin.tickets.index') }}--}}
+                        <h5 class="fw-bold">Logs</h5>
+                        <a href="{{ route('admin.logs') }}" class="btn btn-outline-danger w-100">Ver Logs do Sistema</a> {{--{{ route('admin.tickets.index') }}--}}
                     </div>
                 </div>
             </div>
@@ -94,43 +94,92 @@
         <!-- Chamados Recentes -->
         <div class="row mt-4">
             <div class="col-12">
-                <h4 class="fw-bold text-dark">Chamados Recentes</h4>
-                <table class="table table-hover shadow-sm">
-                    <thead class="table-dark">
-                    <tr>
-                        <th>ID</th>
-                        <th>Assunto</th>
-                        <th>Data</th>
-                        <th>Status</th>
-                        <th>Ações</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-{{--                    @foreach($recentTickets as $ticket)--}}
-{{--                        <tr>--}}
-{{--                            <td>#{{ $ticket->id }}</td>--}}
-{{--                            <td>{{ $ticket->assunto }}</td>--}}
-{{--                            <td>{{ $ticket->created_at->format('d/m/Y') }}</td>--}}
-{{--                            <td>--}}
-{{--                                @if($ticket->status == 'Aberto')--}}
-{{--                                    <span class="badge bg-warning text-dark">Aberto</span>--}}
-{{--                                @elseif($ticket->status == 'Em Andamento')--}}
-{{--                                    <span class="badge bg-primary">Em Andamento</span>--}}
-{{--                                @else--}}
-{{--                                    <span class="badge bg-success">Resolvido</span>--}}
-{{--                                @endif--}}
-{{--                            </td>--}}
-{{--                            <td>--}}
-{{--                                <a href="{{ route('admin.tickets.show', $ticket->id) }}" class="btn btn-sm btn-outline-dark">Ver</a>--}}
-{{--                            </td>--}}
-{{--                        </tr>--}}
-{{--                    @endforeach--}}
-                    </tbody>
-                </table>
+                <!-- Filtro de Chamados -->
+                <div class="card shadow-sm border-0">
+                    <h4 class="fw-bold text-dark text-center">Chamados Recentes</h4>
+                    <div class="card-body">
+                        <form action="{{ route('admin.dashboard') }}" method="GET" class="row g-3 align-items-end">
+                            <!-- ID do Chamado -->
+                            <div class="col-md-4">
+                                <label for="ticket_id" class="form-label">ID do Chamado</label>
+                                <input type="number"
+                                       class="form-control"
+                                       id="ticket_id"
+                                       name="ticket_id"
+                                       value="{{ request('ticket_id') }}"
+                                       placeholder="Digite o ID">
+                            </div>
 
-                @if(null)
-                    <p class="text-muted text-center">Nenhum chamado recente.</p>
-                @endif
+                            <!-- Data -->
+                            <div class="col-md-4">
+                                <label for="date" class="form-label">Data</label>
+                                <input type="date"
+                                       class="form-control"
+                                       id="date"
+                                       name="date"
+                                       value="{{ request('date') }}">
+                            </div>
+
+                            <!-- Botões -->
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-primary me-2">
+                                    <i class="fas fa-search"></i> Pesquisar
+                                </button>
+                                <a href="{{ route('admin.dashboard') }}" class="btn btn-secondary">
+                                    <i class="fas fa-redo"></i> Limpar
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                    <table class="table table-hover shadow-sm">
+                        <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Titulo</th>
+                            <th>Data</th>
+                            <th>Prioridade</th>
+                            <th>Usuário</th>
+                            <th>Categoria</th>
+                            <th>Tipo</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @foreach($tickets as $ticket)
+                            <tr>
+                                <td>#{{ $ticket->id }}</td>
+                                <td>{{ $ticket->titulo }}</td>
+                                <td>{{ $ticket->created_at->format('d/m/Y') }}</td>
+                                <td>{{ $ticket->prioridade }}</td>
+                                <td>{{ $ticket->usuario->name }}</td>
+                                <td>{{ $ticket->category->nome }}</td>
+                                <td>{{ $ticket->type->nome }}</td>
+                                <td>
+                                    @if($ticket->status == 'aberto')
+                                        <span class="badge bg-warning text-dark">Aberto</span>
+                                    @elseif($ticket->status == 'andamento')
+                                        <span class="badge bg-primary">Em Andamento</span>
+                                    @else
+                                        <span class="badge bg-success">Resolvido</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <a href="{{ route('tickets.show', $ticket->id) }}" class="btn btn-sm btn-outline-dark">Ver Chamado</a> {{--{{ route('chamados.show', $chamado->id) }}--}}
+                                </td>
+                            </tr>
+                        @endforeach
+                        </tbody>
+                    </table>
+
+                    @if($tickets->count() == 0)
+                        <p class="text-muted text-center">Nenhum chamado recente.</p>
+                    @endif
+                    <!-- Links de Paginação -->
+                    <div class="d-flex justify-content-center mt-3">
+                        {{ $tickets->links('pagination::bootstrap-4') }}
+                    </div>
+                </div>
             </div>
         </div>
     </div>

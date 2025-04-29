@@ -89,9 +89,13 @@
                     </tbody>
                 </table>
 
-                @if(!$ticket)
+                @if($ticket->count() == 0)
                     <p class="text-muted text-center">Nenhum chamado recente.</p>
                 @endif
+                <!-- Links de Paginação -->
+                <div class="d-flex justify-content-center mt-3">
+                    {{ $ticket->links('pagination::bootstrap-4') }}
+                </div>
             </div>
         </div>
     </div>

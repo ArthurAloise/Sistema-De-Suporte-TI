@@ -45,4 +45,9 @@ class Ticket extends Model
     {
         return !is_null($this->tecnico);
     }
+
+    public function histories()
+    {
+        return $this->hasMany(TicketHistory::class);
+    }
 }

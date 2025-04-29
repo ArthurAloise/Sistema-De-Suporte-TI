@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\TicketHistory;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Models\Ticket;
@@ -27,12 +28,12 @@ class TicketController extends Controller
         $tickets_abertos = Ticket::with(['usuario', 'tecnico', 'category', 'type'])
         ->where('usuario_id', Auth::id()) // Chamados abertos pelo usuário
         ->latest() // Ordena os chamados mais recentes
-        ->get();
+        ->paginate(10, ['*'], 'abertos_page');
 
         $tickets_atribuido = Ticket::with(['usuario', 'tecnico', 'category', 'type'])
         ->where('tecnico_id', Auth::id()) // Chamados atribuídos ao usuário
         ->latest() // Ordena os chamados mais recentes
-        ->get();
+        ->paginate(10, ['*'], 'atribuido_page');
 
         return view('tickets.index', compact('tickets_abertos', 'tickets_atribuido'));
     }
@@ -68,11 +69,14 @@ class TicketController extends Controller
 
     public function show($id)
     {
-        $ticket = Ticket::with(['usuario', 'tecnico', 'category', 'type'])->findOrFail($id);
-        $users = User::where('role_id', '!=', null)->get(); // Lista de usuários para atribuir
+        $ticket = Ticket::with(['usuario', 'tecnico', 'category', 'type', 'histories' => function($query) {
+            $query->orderBy('created_at', 'asc'); // Ordena por data crescente
+        }, 'histories.user'])->findOrFail($id);
+        $users = User::where('role_id', '!=', null)->get();
 
         return view('tickets.show', compact('ticket', 'users'));
     }
+
 
     // Atribuir técnico
     public function assignTechnician(Request $request, $id)
@@ -82,20 +86,65 @@ class TicketController extends Controller
         ]);
 
         $ticket = Ticket::findOrFail($id);
+        $novoTecnico = User::find($request->tecnico_id)->name;
+
         $ticket->tecnico_id = $request->tecnico_id;
         $ticket->status = 'andamento'; // Atualiza o status
         $ticket->save();
 
+        // Registra no histórico
+        TicketHistory::create([
+            'ticket_id' => $ticket->id,
+            'user_id' => Auth::id(),
+            'tipo_acao' => 'atribuicao_tecnico',
+            'descricao' => "Usuário Atribuiu o chamado ao técnico {$novoTecnico}"
+        ]);
+
         return redirect()->route('tickets.show', $id)->with('success', 'Técnico atribuído com sucesso!');
+    }
+
+    public function updateTechnician(Request $request, $id)
+    {
+        $request->validate([
+            'tecnico_id' => 'required',
+        ]);
+
+        $ticket = Ticket::findOrFail($id);
+        $antigoTecnico = $ticket->tecnico ? $ticket->tecnico->name : 'Nenhum';
+        $novoTecnico = User::find($request->tecnico_id)->name;
+
+
+        $ticket->tecnico_id = $request->tecnico_id;
+        $ticket->save();
+
+        // Registra no histórico
+        TicketHistory::create([
+            'ticket_id' => $ticket->id,
+            'user_id' => Auth::id(),
+            'tipo_acao' => 'alteração_tecnico',
+            'descricao' => "Técnico alterado de {$antigoTecnico} para {$novoTecnico}"
+        ]);
+
+        return redirect()->route('tickets.show', $id)->with('success', 'Técnico atualizado com sucesso!');
     }
 
     // Marcar como concluído
     public function markAsCompleted(Request $request, $ticketId)
     {
         $ticket = Ticket::find($ticketId);
+        $usuario_responsavel = Auth::user()->name;
+
         $ticket->status = 'resolvido'; // Alterando status para "Concluído"
         $ticket->descricao_resolucao = $request->descricao_resolucao; // Adicionando a descrição do procedimento realizado
         $ticket->save();
+
+        // Registra no histórico
+        TicketHistory::create([
+            'ticket_id' => $ticket->id,
+            'user_id' => Auth::id(),
+            'tipo_acao' => 'conclusao_chamado',
+            'descricao' => "Chamado concluído por {$usuario_responsavel}. Procedimento realizado: {$request->descricao_resolucao}"
+        ]);
 
         return redirect()->route('tickets.show', $ticketId)->with('success', 'Chamado marcado como concluído!');
     }
