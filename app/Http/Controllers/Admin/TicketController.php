@@ -10,6 +10,8 @@ use App\Models\Ticket;
 use App\Models\Category;
 use App\Models\Type;
 use Illuminate\Support\Facades\Auth;
+use App\Mail\ChamadoCriadoMail;
+use Illuminate\Support\Facades\Mail;
 
 class TicketController extends Controller
 {
@@ -55,7 +57,7 @@ class TicketController extends Controller
             'type_id' => 'required'
         ]);
 
-        Ticket::create([
+        $chamado = Ticket::create([
             'titulo' => $request->titulo,
             'descricao' => $request->descricao,
             'prioridade' => $request->prioridade,
@@ -63,6 +65,10 @@ class TicketController extends Controller
             'type_id' => $request->type_id,
             'usuario_id' => Auth::id()
         ]);
+
+        // Envia o e-mail para o criador do chamado
+
+        Mail::to(Auth::user()->email)->send(new \App\Mail\ChamadoCriadoMail($chamado));
 
         return redirect()->route('user.dashboard')->with('success', 'Ticket criado com sucesso!');
     }
@@ -91,6 +97,8 @@ class TicketController extends Controller
         $ticket->tecnico_id = $request->tecnico_id;
         $ticket->status = 'andamento'; // Atualiza o status
         $ticket->save();
+        // Enviar e-mail para o novo técnico
+        Mail::to($ticket->tecnico->email)->send(new \App\Mail\TecnicoAlteradoMail($ticket));
 
         // Registra no histórico
         TicketHistory::create([
@@ -137,6 +145,9 @@ class TicketController extends Controller
         $ticket->status = 'resolvido'; // Alterando status para "Concluído"
         $ticket->descricao_resolucao = $request->descricao_resolucao; // Adicionando a descrição do procedimento realizado
         $ticket->save();
+
+        // Enviar e-mail para o usuário criador informando que o chamado foi resolvido
+        Mail::to($ticket->usuario->email)->send(new \App\Mail\ChamadoResolvidoMail($ticket));
 
         // Registra no histórico
         TicketHistory::create([
