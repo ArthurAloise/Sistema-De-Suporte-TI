@@ -2,15 +2,18 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles;
+
+    // evita precisar passar 'web' em cada chamada de permissão/role
+    protected $guard_name = 'web';
 
     protected $fillable = [
         'name',
@@ -18,40 +21,17 @@ class User extends Authenticatable
         'password',
         'phone',
         'profile_picture',
-        'role_id'
+        'role_id', // ok manter se existir no BD; não é usado pelo Spatie
     ];
 
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
+    protected $hidden = ['password', 'remember_token'];
 
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
 
-    public function role()
-    {
-        return $this->belongsTo(Role::class);
-    }
-
-    public function permissions()
-    {
-        return $this->belongsToMany(Permission::class, 'user_permission');
-    }
-
-    public function hasPermission($permissionName)
-    {
-        return $this->permissions()->where('name', $permissionName)->exists() ||
-            $this->role->permissions()->where('name', $permissionName)->exists();
-    }
-    public function hasRole($roleName)
-    {
-        return $this->role && $this->role->name === $roleName;
-    }
-
-    // Adição de relação dos tickets para com os usuários e técnicos
+    // suas relações de tickets permanecem
     public function ticketsCriados()
     {
         return $this->hasMany(Ticket::class, 'usuario_id');
