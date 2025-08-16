@@ -66,7 +66,7 @@
                         @if($ticket->tecnico_id)
                             <div class="d-flex align-items-center justify-content-between">
                                 <p class="mb-0"><strong>Técnico Responsável:</strong> {{ $ticket->tecnico->name }}</p>
-                                @if(auth()->user()->hasPermission('alter_tecnico_responsavel'))
+                                 @if(auth()->user()->hasPermissionTo('alter_tecnico_responsavel'))
                                     <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editTechnicianModal">
                                         Alterar Técnico
                                     </button>
@@ -103,7 +103,7 @@
                 @endif
 
                 <!-- Formulário para marcar como concluído -->
-                @if(auth()->user()->hasPermission('concluir_chamado'))
+                    @if(auth()->user()->hasPermissionTo('concluir_chamado'))
                     @if($ticket->status == 'andamento')
                         <div class="card mt-3 shadow-sm">
                             <div class="card-header bg-success text-white">

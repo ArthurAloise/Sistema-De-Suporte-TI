@@ -6,6 +6,7 @@ use App\Models\Type;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
+
 class TypeSeeder extends Seeder
 {
     /**
@@ -13,12 +14,10 @@ class TypeSeeder extends Seeder
      */
     public function run(): void
     {
-        Type::insert([ // Exemplo: Bug no sistema, sistema, problema de rede, acessp de wifi, backup
-            ['nome' => 'Sistema'],
-            ['nome' => 'Bug de Distema'],
-            ['nome' => 'Problema de Rede'],
-            ['nome' => 'Acesso de Wifi'],
-            ['nome' => 'Backup de Dados '],
-        ]);
+Type::firstOrCreate(['nome' => 'Sistema']);
+Type::firstOrCreate(['nome' => 'Bug de Distema']);
+Type::firstOrCreate(['nome' => 'Problema de Rede']);
+Type::firstOrCreate(['nome' => 'Acesso de Wifi']);
+Type::firstOrCreate(['nome' => 'Backup de Dados']);
     }
 }

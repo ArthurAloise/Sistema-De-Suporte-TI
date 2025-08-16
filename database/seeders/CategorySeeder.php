@@ -13,11 +13,10 @@ class CategorySeeder extends Seeder
      */
     public function run(): void
     {
-        Category::insert([
-            ['nome' => 'Rede'],
-            ['nome' => 'Hardware'],
-            ['nome' => 'Software'],
-            ['nome' => 'Banco de Dados']
-        ]);
+        $categorias = ['Rede', 'Hardware', 'Software', 'Banco de Dados'];
+
+        foreach ($categorias as $nome) {
+            Category::firstOrCreate(['nome' => $nome]);
+        }
     }
 }
