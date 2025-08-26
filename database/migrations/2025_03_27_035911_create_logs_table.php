@@ -20,8 +20,8 @@ return new class extends Migration
             $table->string('controller')->nullable();
             $table->string('model')->nullable();
             $table->unsignedBigInteger('record_id')->nullable();
-            $table->text('old_values')->nullable();
-            $table->text('new_values')->nullable();
+            $table->longText('old_values')->nullable();
+            $table->longText('new_values')->nullable();
             $table->string('ip_address');
             $table->string('user_agent');
             $table->timestamps();

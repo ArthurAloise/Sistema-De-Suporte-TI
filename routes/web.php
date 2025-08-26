@@ -1,7 +1,10 @@
 <?php
 
+use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\SetorController;
 use App\Http\Controllers\Admin\TicketController;
+use App\Http\Controllers\Admin\TypesController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
@@ -51,10 +54,17 @@ Route::middleware(['auth', 'permission:acessar_admin'])->prefix('admin')->group(
     Route::resource('permissions', PermissionController::class);
 
     Route::get('/logs', [App\Http\Controllers\Admin\LogController::class, 'index'])->name('admin.logs');
+
+    Route::resource('types', TypesController::class)->except(['show']);
+
+    Route::resource('categories', CategoryController::class)->except(['show']);
+
+    Route::resource('setores', SetorController::class)->except(['show']);
 });
 
 Route::resource('tickets', TicketController::class)->middleware('auth');
 Route::post('/tickets/{id}/assign', [TicketController::class, 'assignTechnician'])->name('tickets.assign');
+Route::post('/tickets/{id}/mark-as-pending', [TicketController::class, 'markAsPending'])->name('tickets.markAsPending');
 Route::post('/tickets/{id}/mark-as-completed', [TicketController::class, 'markAsCompleted'])->name('tickets.markAsCompleted');
 Route::post('/tickets/{id}/update-technician', [TicketController::class, 'updateTechnician'])->name('tickets.updateTechnician');
 

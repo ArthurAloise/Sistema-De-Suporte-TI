@@ -15,7 +15,9 @@ return new class extends Migration
             $table->id();
             $table->string('titulo');
             $table->text('descricao');
-            $table->enum('status', ['aberto', 'andamento', 'resolvido', 'fechado'])->default('aberto');
+            $table->string('pendencia')->nullable();
+            $table->string('descricao_resolucao')->nullable();
+            $table->enum('status', ['aberto', 'andamento', 'resolvido', 'fechado', 'pendente'])->default('aberto');
             $table->enum('prioridade', ['baixa', 'media', 'alta', 'muito alta'])->default('media');
             $table->foreignId('usuario_id')->constrained('users')->onDelete('cascade'); // Quem abriu o ticket
             $table->foreignId('tecnico_id')->nullable()->constrained('users')->onDelete('set null'); // Técnico responsável

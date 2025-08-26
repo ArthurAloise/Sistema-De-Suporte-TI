@@ -8,10 +8,10 @@
                 <label for="name">Nome do Perfil</label>
                 <input type="text" name="name" id="name" class="form-control" required>
             </div>
-            <div class="form-group">
-                <label for="description">Descrição</label>
-                <input type="text" name="description" id="description" class="form-control">
-            </div>
+{{--            <div class="form-group">--}}
+{{--                <label for="description">Descrição</label>--}}
+{{--                <input type="text" name="description" id="description" class="form-control">--}}
+{{--            </div>--}}
             <div class="form-group">
                 <label for="permissions">Permissões</label><br>
                 @foreach($permissions as $permission)

@@ -63,16 +63,34 @@
 
         <!-- Ações Rápidas -->
         <div class="row mt-4">
-            <div class="col-md-4">
+            <div class="col-md-2">
                 <div class="card shadow-sm border-0">
                     <div class="card-body text-center">
-                        <h5 class="fw-bold">DECIDIR O QUE COLOCAR AQUI </h5>
-                        <a href="" class="btn btn-outline-primary w-100">DECIDIR, COPO STANLEY!</a> {{--{{ route('admin.users.create') }}--}}
+                        <h5 class="fw-bold">Tipos</h5>
+                        <a href="{{ route('types.index') }}" class="btn btn-outline-primary w-100">Ver Tipos</a>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-4">
+            <div class="col-md-2">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body text-center">
+                        <h5 class="fw-bold">Categorias</h5>
+                        <a href="{{ route('categories.index') }}" class="btn btn-outline-warning w-100">Ver Categorias</a> {{--{{ route('admin.users.create') }}--}}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-2">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body text-center">
+                        <h5 class="fw-bold">Setores</h5>
+                        <a href="{{ route('setores.index') }}" class="btn btn-outline-dark w-100">Ver Setores</a> {{--{{ route('admin.users.create') }}--}}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
                 <div class="card shadow-sm border-0">
                     <div class="card-body text-center">
                         <h5 class="fw-bold">Logs</h5>
@@ -81,10 +99,10 @@
                 </div>
             </div>
 
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="card shadow-sm border-0">
                     <div class="card-body text-center">
-                        <h5 class="fw-bold">Gerenciar Permissões</h5>
+                        <h5 class="fw-bold">Permissões</h5>
                         <a href="{{ route('permissions.index') }}" class="btn btn-outline-success w-100">Ver Permissões</a> {{--{{ route('admin.permissions.index') }}--}}
                     </div>
                 </div>

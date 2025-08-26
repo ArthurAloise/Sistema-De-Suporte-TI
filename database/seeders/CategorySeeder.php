@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Category;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class CategorySeeder extends Seeder
@@ -13,11 +12,20 @@ class CategorySeeder extends Seeder
      */
     public function run(): void
     {
-        Category::insert([
-            ['nome' => 'Rede'],
-            ['nome' => 'Hardware'],
-            ['nome' => 'Software'],
-            ['nome' => 'Banco de Dados']
-        ]);
+        $itens = [
+            'Software',
+            'Hardware',
+            'Infraestrutura',
+            'Rede',
+            'Segurança',
+            'Backup',
+            'Acesso/Conta',
+            'Telefonia',
+            'Impressoras',
+            'Outros',
+        ];
+
+        $data = array_map(fn($n) => ['nome' => $n, 'created_at' => now(), 'updated_at' => now()], $itens);
+        Category::upsert($data, ['nome'], ['updated_at']);
     }
 }

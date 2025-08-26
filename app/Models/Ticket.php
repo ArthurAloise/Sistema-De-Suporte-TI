@@ -12,6 +12,8 @@ class Ticket extends Model
     protected $fillable = [
         'titulo',
         'descricao',
+        'pendencia',
+        'descricao_resolucao',
         'status',
         'prioridade',
         'usuario_id',
@@ -33,12 +35,12 @@ class Ticket extends Model
 
     public function category()
     {
-        return $this->belongsTo(Category::class);
+        return $this->belongsTo(Category::class, 'category_id');
     }
 
     public function type()
     {
-        return $this->belongsTo(Type::class);
+        return $this->belongsTo(Type::class, 'type_id');
     }
 
     public function hasTechnician()

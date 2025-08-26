@@ -148,4 +148,24 @@ class TicketController extends Controller
 
         return redirect()->route('tickets.show', $ticketId)->with('success', 'Chamado marcado como concluído!');
     }
+
+    public function markAsPending(Request $request, $ticketId)
+    {
+        $ticket = Ticket::find($ticketId);
+        $usuario_responsavel = Auth::user()->name;
+
+        $ticket->status = 'pendente'; // Alterando status para "Pendente"
+        $ticket->pendencia = $request->pendencia; // Adicionando a descrição da pendência
+        $ticket->save();
+
+        // Registra no histórico
+        TicketHistory::create([
+            'ticket_id' => $ticket->id,
+            'user_id' => Auth::id(),
+            'tipo_acao' => 'marcar_pendencia',
+            'descricao' => "O chamado foi marcado como 'Pendente' por {$usuario_responsavel}. Motivo: {$request->pendencia}"
+        ]);
+
+        return redirect()->route('tickets.show', $ticketId)->with('success', 'Chamado marcado como pendente...');
+    }
 }

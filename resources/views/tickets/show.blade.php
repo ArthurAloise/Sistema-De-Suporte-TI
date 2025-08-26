@@ -1,37 +1,38 @@
 @extends('user.layouts.app')
 @section('content')
+
     {{--Style para desing do modal de histórico de chamados--}}
     <style>
-.timeline {
-    position: relative;
-    padding: 20px 0;
-}
+        .timeline {
+            position: relative;
+            padding: 20px 0;
+        }
 
-.timeline-item {
-    position: relative;
-    padding: 20px 30px;
-    border-left: 2px solid #e9ecef;
-    margin-left: 20px;
-}
+        .timeline-item {
+            position: relative;
+            padding: 20px 30px;
+            border-left: 2px solid #e9ecef;
+            margin-left: 20px;
+        }
 
-.timeline-item:before {
-    content: '';
-    position: absolute;
-    left: -9px;
-    top: 28px;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: #dc3545;
-    border: 2px solid #fff;
-}
+        .timeline-item:before {
+            content: '';
+            position: absolute;
+            left: -9px;
+            top: 28px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #dc3545;
+            border: 2px solid #fff;
+        }
 
-.timeline-content {
-    background: #f8f9fa;
-    padding: 15px;
-    border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}
+        .timeline-content {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
     </style>
 
     <div class="container mt-4">
@@ -53,11 +54,14 @@
                         <p><strong>Prioridade:</strong> {{ ucfirst($ticket->prioridade) }}</p>
                         <p><strong>Aberto por:</strong> {{ $ticket->usuario->name }}</p>
                         <p><strong>Data de Abertura:</strong> {{ $ticket->created_at->format('d/m/Y H:i') }}</p>
-                        <p><strong>Status:</strong>
+                        <p>
+                            <strong>Status:</strong>
                             @if($ticket->status == 'aberto')
                                 <span class="badge bg-warning text-dark">Aberto</span>
                             @elseif($ticket->status == 'andamento')
                                 <span class="badge bg-primary">Em Andamento</span>
+                            @elseif($ticket->status == 'pendente')
+                                <span class="badge bg-danger">Em Pendência</span>
                             @else
                                 <span class="badge bg-success">Resolvido</span>
                             @endif
@@ -102,9 +106,30 @@
                     </div>
                 @endif
 
+                <!-- Formulário para marcar caso tenha algum impecilho ou pendência para resolver o chamado -->
+                @if(auth()->user()->hasPermission('marcar_pendencias'))
+                    @if($ticket->status == 'andamento')
+                        <div class="card mt-3 shadow-sm">
+                            <div class="card-header bg-danger text-white">
+                                <h5 class="mb-0">Marcar Pendências</h5>
+                            </div>
+                            <div class="card-body">
+                                <form action="{{ route('tickets.markAsPending', $ticket->id) }}" method="POST">
+                                    @csrf
+                                    <div class="mb-3">
+                                        <label for="pendencia" class="form-label">Descrição da Pendência:</label>
+                                        <textarea name="pendencia" id="pendencia" class="form-control" rows="4" required></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-danger w-100"> Registrar Pendências </button>
+                                </form>
+                            </div>
+                        </div>
+                    @endif
+                @endif
+
                 <!-- Formulário para marcar como concluído -->
                 @if(auth()->user()->hasPermission('concluir_chamado'))
-                    @if($ticket->status == 'andamento')
+                    @if($ticket->status == 'andamento' || $ticket->status == 'pendente')
                         <div class="card mt-3 shadow-sm">
                             <div class="card-header bg-success text-white">
                                 <h5 class="mb-0">Marcar Chamado como Concluído</h5>
@@ -122,6 +147,7 @@
                         </div>
                     @endif
                 @endif
+
                 <div class="text-center mt-3">
                     <a href="{{ route('user.dashboard') }}" class="btn btn-outline-dark">Voltar à Lista</a>
                 </div>

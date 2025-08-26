@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('permissions', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique();// Exemplo: "ver usuários", "editar chamados"
+            $table->string('name')->unique();// Exemplo: "acessar_admin | acessar_perfis | acessar_permissoes | acessar_painel_admin | alter_tecnico_responsavel | concluir_chamado | marcar_pendencias"
             $table->timestamps();
         });
     }

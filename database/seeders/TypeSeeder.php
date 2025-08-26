@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Type;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class TypeSeeder extends Seeder
@@ -13,12 +12,20 @@ class TypeSeeder extends Seeder
      */
     public function run(): void
     {
-        Type::insert([ // Exemplo: Bug no sistema, sistema, problema de rede, acessp de wifi, backup
-            ['nome' => 'Sistema'],
-            ['nome' => 'Bug de Distema'],
-            ['nome' => 'Problema de Rede'],
-            ['nome' => 'Acesso de Wifi'],
-            ['nome' => 'Backup de Dados '],
-        ]);
+        $itens = [
+            'Bug no sistema',
+            'Problema de rede',
+            'Acesso Wi-Fi',
+            'Backup',
+            'Sistema',
+            'Impressão',
+            'E-mail',
+            'Acesso ao Sistema',
+            'Outros',
+        ];
+
+        // upsert por nome (único)
+        $data = array_map(fn($n) => ['nome' => $n, 'created_at' => now(), 'updated_at' => now()], $itens);
+        Type::upsert($data, ['nome'], ['updated_at']);
     }
 }
