@@ -18,7 +18,8 @@ class User extends Authenticatable
         'password',
         'phone',
         'profile_picture',
-        'role_id'
+        'role_id',
+        'setor_id',
     ];
 
     protected $hidden = [
@@ -60,5 +61,10 @@ class User extends Authenticatable
     public function ticketsAtribuidos()
     {
         return $this->hasMany(Ticket::class, 'tecnico_id');
+    }
+
+    public function setor()
+    {
+        return $this->belongsTo(\App\Models\Setor::class);
     }
 }

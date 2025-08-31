@@ -10,6 +10,8 @@ use App\Models\Ticket;
 use App\Models\Category;
 use App\Models\Type;
 use Illuminate\Support\Facades\Auth;
+use App\Services\SlaService;
+use Illuminate\Support\Str;
 
 class TicketController extends Controller
 {
@@ -48,33 +50,161 @@ class TicketController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'titulo' => 'required|string|max:255',
-            'descricao' => 'required',
-            'prioridade' => 'required',
-            'category_id' => 'required',
-            'type_id' => 'required'
+            'titulo'      => 'required|string|max:255',
+            'descricao'   => 'required',
+            'category_id' => 'required|exists:categories,id',
+            'type_id'     => 'required|exists:types,id',
         ]);
+
+        $type     = Type::findOrFail($request->type_id);
+        $category = Category::findOrFail($request->category_id);
+
+        ['priority' => $prioridade, 'hours' => $horas] = SlaService::resolve($type->nome, $category->nome);
+
+        $now   = now();
+        $dueAt = SlaService::dueAt($prioridade, $now, null);
 
         Ticket::create([
             'titulo' => $request->titulo,
             'descricao' => $request->descricao,
-            'prioridade' => $request->prioridade,
+            'prioridade' => $prioridade,
             'category_id' => $request->category_id,
             'type_id' => $request->type_id,
-            'usuario_id' => Auth::id()
+            'usuario_id' => Auth::id(),
+            'due_at'      => $dueAt,
         ]);
 
         return redirect()->route('user.dashboard')->with('success', 'Ticket criado com sucesso!');
     }
 
+    public function edit($id){
+        $ticket = Ticket::findOrFail($id);
+        $categories = Category::all();
+        $types = Type::all();
+        return view('tickets.edit', compact('ticket', 'categories', 'types'));
+    }
+
+//    public function update(Request $request, $id){
+//        $request->validate([
+//            'titulo'      => 'required|string|max:255',
+//            'descricao'   => 'required',
+//            'category_id' => 'required|exists:categories,id',
+//            'type_id'     => 'required|exists:types,id',
+//        ]);
+//
+//        $ticket = Ticket::findOrFail($id);
+//
+//        if ($request->hasAny(['type_id','category_id'])) {
+//            $type     = Type::find($request->type_id ?? $ticket->type_id);
+//            $category = Category::find($request->category_id ?? $ticket->category_id);
+//
+//            ['priority' => $prioridade, 'hours' => $hours] = SlaService::resolve($type->nome ?? null, $category->nome ?? null);
+//
+//            $ticket->prioridade = $prioridade;
+//
+//            // define novo due_at relativo “agora” (ou à data original se preferir outra política)
+//            $ticket->due_at = SlaService::dueAt($prioridade, now(), null);
+//        }
+//
+//        $ticket->update([
+//            'titulo' => $request->titulo,
+//            'descricao' => $request->descricao,
+//            'category_id' => $request->category_id,
+//            'type_id' => $request->type_id,
+//        ]);
+//
+//        return redirect()->route('tickets.index')->with('success', 'Ticket atualizado com sucesso!');
+//    }
+
+    public function update(Request $request, $id)
+    {
+        // erros isolados no modal "editTicket"
+        $validated = $request->validateWithBag('editTicket', [
+            'titulo'      => 'required|string|max:255',
+            'descricao'   => 'required',
+            'category_id' => 'required|exists:categories,id',
+            'type_id'     => 'required|exists:types,id',
+        ]);
+
+        $ticket = Ticket::findOrFail($id);
+
+        // Snapshot do "antes" para histórico
+        $before = [
+            'titulo'      => $ticket->titulo,
+            'descricao'   => $ticket->descricao,
+            'category_id' => $ticket->category_id,
+            'type_id'     => $ticket->type_id,
+        ];
+
+        // Recalcular prioridade + SLA se Type/Category mudar
+        $typeChanged = (int)$validated['type_id'] !== (int)$ticket->type_id;
+        $catChanged  = (int)$validated['category_id'] !== (int)$ticket->category_id;
+
+        if ($typeChanged || $catChanged) {
+            $type     = Type::find($validated['type_id']);
+            $category = Category::find($validated['category_id']);
+            ['priority' => $prioridade] = SlaService::resolve($type->nome ?? null, $category->nome ?? null);
+            $ticket->prioridade = $prioridade;
+            $ticket->due_at     = SlaService::dueAt($prioridade, now(), null);
+        }
+
+        // Atualiza campos básicos
+        $ticket->titulo      = $validated['titulo'];
+        $ticket->descricao   = $validated['descricao'];
+        $ticket->category_id = $validated['category_id'];
+        $ticket->type_id     = $validated['type_id'];
+        $ticket->save();
+
+        // Histórico de edição (apenas diffs)
+        $changes = [];
+        if ($before['titulo']      !== $ticket->titulo)      $changes[] = "Título: '{$before['titulo']}' → '{$ticket->titulo}'";
+        if ($before['descricao'] !== $ticket->descricao) {
+            $max = 1000; // ajuste conforme desejar
+            $oldDesc = Str::limit($before['descricao'] ?? '', $max);
+            $newDesc = Str::limit($ticket->descricao ?? '', $max);
+
+            $changes[] = "Descrição alterada:\n[ANTES]\n{$oldDesc}\n\n[DEPOIS]\n{$newDesc}";
+        }
+        if ($before['category_id'] !== $ticket->category_id) {
+            $oldC = Category::find($before['category_id'])->nome ?? '—';
+            $newC = $ticket->category->nome ?? '—';
+            $changes[] = "Categoria: '{$oldC}' → '{$newC}'";
+        }
+        if ($before['type_id']     !== $ticket->type_id) {
+            $oldT = Type::find($before['type_id'])->nome ?? '—';
+            $newT = $ticket->type->nome ?? '—';
+            $changes[] = "Tipo: '{$oldT}' → '{$newT}'";
+        }
+        if (!empty($changes)) {
+            TicketHistory::create([
+                'ticket_id' => $ticket->id,
+                'user_id'   => Auth::id(),
+                'tipo_acao' => 'edicao_ticket',
+                'descricao' => implode(' | ', $changes),
+            ]);
+        }
+
+        return redirect()
+            ->route('tickets.show', $ticket->id)
+            ->with('success', 'Ticket atualizado com sucesso!');
+    }
+
     public function show($id)
     {
-        $ticket = Ticket::with(['usuario', 'tecnico', 'category', 'type', 'histories' => function($query) {
-            $query->orderBy('created_at', 'asc'); // Ordena por data crescente
-        }, 'histories.user'])->findOrFail($id);
-        $users = User::where('role_id', '!=', null)->get();
+//        $ticket = Ticket::with(['usuario', 'tecnico', 'category', 'type', 'histories' => function($query) {
+//            $query->orderBy('created_at', 'asc'); // Ordena por data crescente
+//        }, 'histories.user'])->findOrFail($id);
+        $ticket = Ticket::with([
+            'usuario','tecnico','category','type',
+            'histories' => fn($q) => $q->orderBy('created_at','asc'),
+            'histories.user'
+        ])->findOrFail($id);
 
-        return view('tickets.show', compact('ticket', 'users'));
+        $users = User::where('role_id', '!=', null)->get();
+        $categories = Category::orderBy('nome')->get();  // ⬅️ para o select do modal
+        $types = Type::orderBy('nome')->get();
+
+        return view('tickets.show', compact('ticket', 'users', 'categories', 'types'));
     }
 
 

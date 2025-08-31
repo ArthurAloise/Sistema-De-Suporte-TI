@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use App\Models\Role;
+use App\Models\Setor;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -13,6 +14,8 @@ class UserSeeder extends Seeder
     {
         // Admin demo
         $adminRoleId = Role::where('name', 'Admin')->value('id');
+        $setorTI  = Setor::where('sigla', 'TI')->value('id');
+        $fallbackSetorId = Setor::value('id');
         User::firstOrCreate(
             ['email' =>  'admin@gmail.com'],
             [
@@ -20,6 +23,7 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('12345678'),
                 'phone'    => null,
                 'role_id'  => $adminRoleId,
+                'setor_id'          => $setorTI ?? $fallbackSetorId,
                 'profile_picture' => null,
                 'email_verified_at' => now(),
             ]
@@ -33,6 +37,7 @@ class UserSeeder extends Seeder
                 'name'     => 'Suporte',
                 'password' => Hash::make('12345678'),
                 'role_id'  => $suporteRoleId,
+                'setor_id'          => $setorTI ?? $fallbackSetorId,
                 'profile_picture' => null,
                 'email_verified_at' => now(),
             ]
@@ -40,12 +45,14 @@ class UserSeeder extends Seeder
 
         // Usuário demo
         $usuarioRoleId = Role::where('name', 'Usuario')->value('id');
+        $setorRH  = Setor::where('sigla', 'RH')->value('id');
         User::firstOrCreate(
             ['email' => 'usuario@gmail.com'],
             [
                 'name'     => 'Usuário',
                 'password' => Hash::make('12345678'),
                 'role_id'  => $usuarioRoleId,
+                'setor_id'          => $setorRH ?? $fallbackSetorId,
                 'profile_picture' => null,
                 'email_verified_at' => now(),
             ]

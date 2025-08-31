@@ -43,6 +43,21 @@
             @enderror
         </div>
 
+        <div class="mb-3">
+            <label for="setor_id" class="form-label">Setor</label>
+            <select class="form-select" id="setor_id" name="setor_id">
+                <option value="">Selecione um setor</option>
+                @foreach ($setores as $setor)
+                    <option value="{{ $setor->id }}" {{ old('setor_id') == $setor->id ? 'selected' : '' }}>
+                        [{{ $setor->sigla }}] {{ $setor->nome }}
+                    </option>
+                @endforeach
+            </select>
+            @error('setor_id')
+            <div class="text-danger">{{ $message }}</div>
+            @enderror
+        </div>
+
         <button type="submit" class="btn btn-primary">Criar Usuário</button>
         <a href="{{ route('users.index') }}" class="btn btn-secondary">Cancelar</a>
     </form>

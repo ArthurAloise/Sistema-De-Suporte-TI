@@ -12,20 +12,22 @@ class TypeSeeder extends Seeder
      */
     public function run(): void
     {
-        $itens = [
-            'Bug no sistema',
-            'Problema de rede',
-            'Acesso Wi-Fi',
-            'Backup',
-            'Sistema',
-            'Impressão',
-            'E-mail',
-            'Acesso ao Sistema',
-            'Outros',
+        $typeMap = [
+            'Problema de rede'  => ['muito alta', 4],
+            'Acesso ao Sistema' => ['muito alta', 4],
+            'Bug no sistema'    => ['alta', 8],
+            'Sistema'           => ['alta', 8],
+            'E-mail'            => ['alta', 8],
+            'Backup'            => ['media', 24],
+            'Acesso Wi-Fi'      => ['media', 24],
+            'Impressão'         => ['baixa', 72],
+            'Outros'            => [null, null],
         ];
-
-        // upsert por nome (único)
-        $data = array_map(fn($n) => ['nome' => $n, 'created_at' => now(), 'updated_at' => now()], $itens);
-        Type::upsert($data, ['nome'], ['updated_at']);
+        foreach ($typeMap as $nome => [$prio, $h]) {
+            Type::updateOrCreate(
+                ['nome' => $nome],
+                ['default_priority' => $prio, 'sla_hours' => $h]
+            );
+        }
     }
 }

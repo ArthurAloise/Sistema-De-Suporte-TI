@@ -44,6 +44,22 @@
             @enderror
         </div>
 
+        <div class="mb-3">
+            <label for="setor_id" class="form-label">Setor</label>
+            <select class="form-control @error('setor_id') is-invalid @enderror" id="setor_id" name="setor_id">
+                <option value="">Selecione um setor</option>
+                @foreach($setores as $setor)
+                    <option value="{{ $setor->id }}" {{ old('setor_id', $user->setor_id) == $setor->id ? 'selected' : '' }}>
+                        [{{ $setor->sigla }}] {{ $setor->nome }}
+                    </option>
+                @endforeach
+            </select>
+            @error('setor_id')
+            <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
+
+
         <button type="submit" class="btn btn-primary">Atualizar Usuário</button>
     </form>
 @endsection

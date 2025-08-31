@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Services\SlaService;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreCategoryRequest;
 use App\Http\Requests\UpdateCategoryRequest;
@@ -36,7 +37,9 @@ class CategoryController extends Controller
 
     public function store(StoreCategoryRequest $request)
     {
-        Category::create($request->validated());
+        $category = Category::create($request->validated());
+        SlaService::forgetCategory($category->nome);
+
         return redirect()->route('categories.index')->with('success', 'Categoria criada com sucesso.');
     }
 
@@ -48,6 +51,9 @@ class CategoryController extends Controller
     public function update(UpdateCategoryRequest $request, Category $category)
     {
         $category->update($request->validated());
+        SlaService::forgetCategory($category->nome);
+
+
         return redirect()->route('categories.index')->with('success', 'Categoria atualizada com sucesso.');
     }
 

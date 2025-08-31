@@ -1,6 +1,14 @@
 @extends('user.layouts.app')
 
 @section('content')
+    <style>
+        @keyframes blink-red {
+            0%, 100% { background-color: inherit; }
+            50%      { background-color: #ffe5e5; } /* vermelho claro */
+        }
+        .sla-overdue { animation: blink-red 1s linear infinite; }
+        .sla-overdue td, .sla-overdue .badge { color: #b00020 !important; }
+    </style>
     <div class="container mt-4">
         <div class="row">
             <!-- Boas-vindas -->
@@ -64,11 +72,28 @@
                     </thead>
                     <tbody>
                     @foreach($ticket as $tickets)
-                        <tr>
+                        @php
+                            $overdue = in_array($tickets->status, ['aberto','andamento'])
+                                       && $tickets->due_at
+                                       && now()->greaterThan($tickets->due_at);
+                        @endphp
+                        <tr class="{{ $overdue ? 'sla-overdue' : '' }}">
                             <td>#{{ $tickets->id }}</td>
                             <td>{{ $tickets->titulo }}</td>
-                            <td>{{ $tickets->created_at->format('d/m/Y') }}</td>
-                            <td>{{ $tickets->prioridade }}</td>
+                            <td>
+                                {{ $tickets->created_at->format('d/m/Y') }}
+                                @if($tickets->due_at)
+                                    <div class="small text-muted">
+                                        Prazo: {{ $tickets->due_at->format('d/m H:i') }}
+                                        @if($overdue)
+                                            <span class="badge bg-danger ms-1">SLA estourado</span>
+                                        @else
+                                            <span class="badge bg-success ms-1">Dentro do prazo</span>
+                                        @endif
+                                    </div>
+                                @endif
+                            </td>
+                            <td class="text-capitalize">{{ $tickets->prioridade }}</td>
                             <td>{{ $tickets->usuario->name }}</td>
                             <td>{{ $tickets->category->nome }}</td>
                             <td>{{ $tickets->type->nome }}</td>
@@ -77,12 +102,16 @@
                                     <span class="badge bg-warning text-dark">Aberto</span>
                                 @elseif($tickets->status == 'andamento')
                                     <span class="badge bg-primary">Em Andamento</span>
+                                @elseif($tickets->status == 'pendente')
+                                    <span class="badge bg-secondary">Pendente</span>
+                                @elseif($tickets->status == 'fechado')
+                                    <span class="badge bg-dark">Fechado</span>
                                 @else
                                     <span class="badge bg-success">Resolvido</span>
                                 @endif
                             </td>
                             <td>
-                                <a href="{{ route('tickets.show', $tickets->id) }}" class="btn btn-sm btn-outline-dark">Ver Chamado</a> {{--{{ route('chamados.show', $chamado->id) }}--}}
+                                <a href="{{ route('tickets.show', $tickets->id) }}" class="btn btn-sm btn-outline-dark">Ver</a>
                             </td>
                         </tr>
                     @endforeach

@@ -32,15 +32,9 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="mb-3">
-                                <label for="prioridade" class="form-label">Prioridade</label>
-                                <select class="form-select" id="prioridade" name="prioridade" required>
-                                    <option value="Baixa">Baixa</option>
-                                    <option value="Media">Média</option>
-                                    <option value="Alta">Alta</option>
-                                    <option value="Muito Alta">Muito Alta</option>
-                                </select>
-                            </div>
+                            <p class="text-danger mb-3">
+                                A prioridade será definida automaticamente com base no Tipo/Categoria (ITIL).
+                            </p>
                             <button type="submit" class="btn btn-primary">Criar Ticket</button>
                         </form>
                     </div>

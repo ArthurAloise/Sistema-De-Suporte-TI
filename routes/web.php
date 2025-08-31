@@ -56,8 +56,10 @@ Route::middleware(['auth', 'permission:acessar_admin'])->prefix('admin')->group(
     Route::get('/logs', [App\Http\Controllers\Admin\LogController::class, 'index'])->name('admin.logs');
 
     Route::resource('types', TypesController::class)->except(['show']);
+    Route::post('types/{type}/recalculate-sla', [TypesController::class, 'recalculateSla'])->name('types.recalculateSla');
 
     Route::resource('categories', CategoryController::class)->except(['show']);
+    Route::post('categories/{category}/recalculate-sla', [CategoryController::class, 'recalculateSla'])->name('categories.recalculateSla');
 
     Route::resource('setores', SetorController::class)->except(['show']);
 });

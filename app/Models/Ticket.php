@@ -20,8 +20,22 @@ class Ticket extends Model
         'tecnico_id',
         'category_id',
         'type_id',
-        'descricao_resolucao'
+        'due_at',
     ];
+
+    // Opcional: atalho de leitura
+    protected $casts = [
+        'due_at' => 'datetime',
+    ];
+
+    public function getIsOverdueAttribute(): bool
+    {
+        // Só considera SLA em aberto/andamento (pausa se pendente, fechado ou resolvido)
+        if (!in_array($this->status, ['aberto','andamento'])) return false;
+        if (!$this->due_at) return false;
+
+        return now()->greaterThan($this->due_at);
+    }
 
     public function usuario()
     {

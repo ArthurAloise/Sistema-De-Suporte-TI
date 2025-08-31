@@ -12,20 +12,23 @@ class CategorySeeder extends Seeder
      */
     public function run(): void
     {
-        $itens = [
-            'Software',
-            'Hardware',
-            'Infraestrutura',
-            'Rede',
-            'Segurança',
-            'Backup',
-            'Acesso/Conta',
-            'Telefonia',
-            'Impressoras',
-            'Outros',
+        $catMap = [
+            'Rede'           => ['muito alta', 4],
+            'Infraestrutura' => ['muito alta', 4],
+            'Segurança'      => ['alta', 8],
+            'Software'       => ['alta', 8],
+            'Acesso/Conta'   => ['alta', 8],
+            'Hardware'       => ['media', 24],
+            'Telefonia'      => ['media', 24],
+            'Backup'         => ['media', 24],
+            'Impressoras'    => ['baixa', 72],
+            'Outros'         => [null, null],
         ];
-
-        $data = array_map(fn($n) => ['nome' => $n, 'created_at' => now(), 'updated_at' => now()], $itens);
-        Category::upsert($data, ['nome'], ['updated_at']);
+        foreach ($catMap as $nome => [$prio, $h]) {
+            Category::updateOrCreate(
+                ['nome' => $nome],
+                ['default_priority' => $prio, 'sla_hours' => $h]
+            );
+        }
     }
 }

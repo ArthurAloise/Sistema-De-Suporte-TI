@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Type;
+use App\Services\SlaService;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreTypeRequest;
 use App\Http\Requests\UpdateTypeRequest;
@@ -37,7 +38,9 @@ class TypesController extends Controller
 
     public function store(StoreTypeRequest $request)
     {
-        Type::create($request->validated());
+        $type = Type::create($request->validated());
+        SlaService::forgetType($type->nome);
+
         return redirect()->route('types.index')->with('success', 'Tipo criado com sucesso.');
     }
 
@@ -49,6 +52,8 @@ class TypesController extends Controller
     public function update(UpdateTypeRequest $request, Type $type)
     {
         $type->update($request->validated());
+        SlaService::forgetType($type->nome);
+
         return redirect()->route('types.index')->with('success', 'Tipo atualizado com sucesso.');
     }
 

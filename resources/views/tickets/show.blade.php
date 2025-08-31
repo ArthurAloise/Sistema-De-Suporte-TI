@@ -46,6 +46,14 @@
                     <div class="card-header bg-dark text-white">
                         <h5 class="mb-0">Nº do Chamado #{{ $ticket->id }}</h5>
                     </div>
+                    {{-- Mostrar botão se criador, técnico ou quem tem permissão admin EDITAR LÓGICA DE PERMISSÃO DE VISUALIZAÇÃO --}}
+                    @if(auth()->id() === $ticket->usuario_id
+                        || auth()->id() === $ticket->tecnico_id
+                        || (method_exists(auth()->user(),'hasPermission') && auth()->user()->hasPermission('acessar_admin')))
+                        <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editTicketModal">
+                            <i class="fas fa-edit me-1"></i> Editar
+                        </button>
+                    @endif
                     <div class="card-body">
                         <p><strong>Título:</strong> {{ $ticket->titulo }}</p>
                         <p><strong>Descrição:</strong> {{ $ticket->descricao }}</p>
@@ -187,7 +195,7 @@
         </div>
     </div>
 
-    {{--Histórico de Chamados--}}
+    {{--Histórico de Tickets--}}
     <div class="modal fade" id="historicoModal" tabindex="-1" aria-labelledby="historicoModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -216,7 +224,8 @@
                                         <strong>{{ ucfirst(str_replace('_', ' ', $history->tipo_acao)) }}</strong>
                                         <small>{{ $history->created_at->format('d/m/Y H:i') }}</small>
                                     </div>
-                                    <p>{{ $history->descricao }}</p>
+                                    <p class="mb-2 small">{!! nl2br(e($history->descricao)) !!}</p>
+
                                     <small class="text-muted">Ação realizada por: {{ $history->user->name }}</small>
                                 </div>
                             </div>
@@ -229,4 +238,96 @@
             </div>
         </div>
     </div>
+
+    {{-- ===== Modal: Editar Tickets ===== --}}
+    <div class="modal fade" id="editTicketModal" tabindex="-1" aria-labelledby="editTicketModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <form action="{{ route('tickets.update', $ticket->id) }}" method="POST" novalidate>
+                    @csrf
+                    @method('PUT')
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editTicketModalLabel">Editar Chamado #{{ $ticket->id }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="titulo" class="form-label">Título</label>
+                            <input type="text"
+                                   id="titulo" name="titulo"
+                                   value="{{ old('titulo', $ticket->titulo) }}"
+                                   class="form-control @error('titulo','editTicket') is-invalid @enderror" required>
+                            @error('titulo','editTicket') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="descricao" class="form-label">Descrição</label>
+                            <textarea id="descricao" name="descricao" rows="4"
+                                      class="form-control @error('descricao','editTicket') is-invalid @enderror" required>{{ old('descricao', $ticket->descricao) }}</textarea>
+                            @error('descricao','editTicket') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="category_id" class="form-label">Categoria</label>
+                                <select id="category_id" name="category_id"
+                                        class="form-select @error('category_id','editTicket') is-invalid @enderror" required>
+                                    @foreach($categories as $c)
+                                        <option value="{{ $c->id }}"
+                                            {{ (int)old('category_id', $ticket->category_id) === $c->id ? 'selected' : '' }}>
+                                            {{ $c->nome }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('category_id','editTicket') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                <div class="form-text">Ao alterar Categoria/Tipo, a prioridade e o SLA serão recalculados.</div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="type_id" class="form-label">Tipo</label>
+                                <select id="type_id" name="type_id"
+                                        class="form-select @error('type_id','editTicket') is-invalid @enderror" required>
+                                    @foreach($types as $t)
+                                        <option value="{{ $t->id }}"
+                                            {{ (int)old('type_id', $ticket->type_id) === $t->id ? 'selected' : '' }}>
+                                            {{ $t->nome }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('type_id','editTicket') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            </div>
+                        </div>
+
+                        <hr class="my-3">
+
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Prioridade (atual)</label>
+                                <input class="form-control text-capitalize" value="{{ $ticket->prioridade }}" disabled>
+                            </div>
+                            <div class="col-md-8">
+                                <label class="form-label">Prazo (SLA) atual</label>
+                                <input class="form-control"
+                                       value="{{ $ticket->due_at ? $ticket->due_at->format('d/m/Y H:i') : '—' }}" disabled>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Salvar alterações</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            @if ($errors->hasBag('editTicket') && $errors->editTicket->any())
+            var modal = new bootstrap.Modal(document.getElementById('editTicketModal'));
+            modal.show();
+            @endif
+        });
+    </script>
 @endsection
