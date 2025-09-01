@@ -12,30 +12,37 @@ use App\Models\Type;
 use Illuminate\Support\Facades\Auth;
 use App\Services\SlaService;
 use Illuminate\Support\Str;
+use App\Mail\ChamadoCriadoMail;
+use App\Mail\ChamadoResolvidoMail;
+use App\Mail\TecnicoAlteradoMail;
+use App\Mail\ChamadoPendenteMail;
+use Illuminate\Support\Facades\Mail;
+
+
 
 class TicketController extends Controller
 {
     public function index()
     {
-//        $tickets = Ticket::with(['usuario', 'tecnico', 'category', 'type'])->get();
+        //        $tickets = Ticket::with(['usuario', 'tecnico', 'category', 'type'])->get();
 
-//        // Aqui estamos pegando os chamados que o usuário abriu e os que foram atribuídos a ele.
-//        $tickets = Ticket::with(['usuario', 'tecnico', 'category', 'type'])
-//        ->where('usuario_id', Auth::id()) // Chamados abertos pelo usuário
-//        ->orWhere('tecnico_id', Auth::id()) // Chamados atribuídos ao usuário
-//        ->latest() // Ordena os chamados mais recentes
-//        ->get();
+        //        // Aqui estamos pegando os chamados que o usuário abriu e os que foram atribuídos a ele.
+        //        $tickets = Ticket::with(['usuario', 'tecnico', 'category', 'type'])
+        //        ->where('usuario_id', Auth::id()) // Chamados abertos pelo usuário
+        //        ->orWhere('tecnico_id', Auth::id()) // Chamados atribuídos ao usuário
+        //        ->latest() // Ordena os chamados mais recentes
+        //        ->get();
 
         // Pegando os chamados que o usuário abriu e os chamados atribuídos a ele
         $tickets_abertos = Ticket::with(['usuario', 'tecnico', 'category', 'type'])
-        ->where('usuario_id', Auth::id()) // Chamados abertos pelo usuário
-        ->latest() // Ordena os chamados mais recentes
-        ->paginate(10, ['*'], 'abertos_page');
+            ->where('usuario_id', Auth::id()) // Chamados abertos pelo usuário
+            ->latest() // Ordena os chamados mais recentes
+            ->paginate(10, ['*'], 'abertos_page');
 
         $tickets_atribuido = Ticket::with(['usuario', 'tecnico', 'category', 'type'])
-        ->where('tecnico_id', Auth::id()) // Chamados atribuídos ao usuário
-        ->latest() // Ordena os chamados mais recentes
-        ->paginate(10, ['*'], 'atribuido_page');
+            ->where('tecnico_id', Auth::id()) // Chamados atribuídos ao usuário
+            ->latest() // Ordena os chamados mais recentes
+            ->paginate(10, ['*'], 'atribuido_page');
 
         return view('tickets.index', compact('tickets_abertos', 'tickets_atribuido'));
     }
@@ -47,6 +54,7 @@ class TicketController extends Controller
         return view('tickets.create', compact('categories', 'types'));
     }
 
+    // store()
     public function store(Request $request)
     {
         $request->validate([
@@ -64,7 +72,7 @@ class TicketController extends Controller
         $now   = now();
         $dueAt = SlaService::dueAt($prioridade, $now, null);
 
-        Ticket::create([
+        $chamado = Ticket::create([
             'titulo' => $request->titulo,
             'descricao' => $request->descricao,
             'prioridade' => $prioridade,
@@ -74,47 +82,52 @@ class TicketController extends Controller
             'due_at'      => $dueAt,
         ]);
 
+        // 🔔 Enviar e-mail para o criador do chamado
+        Mail::to(Auth::user()->email)->send(new ChamadoCriadoMail($chamado));
+
         return redirect()->route('user.dashboard')->with('success', 'Ticket criado com sucesso!');
     }
 
-    public function edit($id){
+
+    public function edit($id)
+    {
         $ticket = Ticket::findOrFail($id);
         $categories = Category::all();
         $types = Type::all();
         return view('tickets.edit', compact('ticket', 'categories', 'types'));
     }
 
-//    public function update(Request $request, $id){
-//        $request->validate([
-//            'titulo'      => 'required|string|max:255',
-//            'descricao'   => 'required',
-//            'category_id' => 'required|exists:categories,id',
-//            'type_id'     => 'required|exists:types,id',
-//        ]);
-//
-//        $ticket = Ticket::findOrFail($id);
-//
-//        if ($request->hasAny(['type_id','category_id'])) {
-//            $type     = Type::find($request->type_id ?? $ticket->type_id);
-//            $category = Category::find($request->category_id ?? $ticket->category_id);
-//
-//            ['priority' => $prioridade, 'hours' => $hours] = SlaService::resolve($type->nome ?? null, $category->nome ?? null);
-//
-//            $ticket->prioridade = $prioridade;
-//
-//            // define novo due_at relativo “agora” (ou à data original se preferir outra política)
-//            $ticket->due_at = SlaService::dueAt($prioridade, now(), null);
-//        }
-//
-//        $ticket->update([
-//            'titulo' => $request->titulo,
-//            'descricao' => $request->descricao,
-//            'category_id' => $request->category_id,
-//            'type_id' => $request->type_id,
-//        ]);
-//
-//        return redirect()->route('tickets.index')->with('success', 'Ticket atualizado com sucesso!');
-//    }
+    //    public function update(Request $request, $id){
+    //        $request->validate([
+    //            'titulo'      => 'required|string|max:255',
+    //            'descricao'   => 'required',
+    //            'category_id' => 'required|exists:categories,id',
+    //            'type_id'     => 'required|exists:types,id',
+    //        ]);
+    //
+    //        $ticket = Ticket::findOrFail($id);
+    //
+    //        if ($request->hasAny(['type_id','category_id'])) {
+    //            $type     = Type::find($request->type_id ?? $ticket->type_id);
+    //            $category = Category::find($request->category_id ?? $ticket->category_id);
+    //
+    //            ['priority' => $prioridade, 'hours' => $hours] = SlaService::resolve($type->nome ?? null, $category->nome ?? null);
+    //
+    //            $ticket->prioridade = $prioridade;
+    //
+    //            // define novo due_at relativo “agora” (ou à data original se preferir outra política)
+    //            $ticket->due_at = SlaService::dueAt($prioridade, now(), null);
+    //        }
+    //
+    //        $ticket->update([
+    //            'titulo' => $request->titulo,
+    //            'descricao' => $request->descricao,
+    //            'category_id' => $request->category_id,
+    //            'type_id' => $request->type_id,
+    //        ]);
+    //
+    //        return redirect()->route('tickets.index')->with('success', 'Ticket atualizado com sucesso!');
+    //    }
 
     public function update(Request $request, $id)
     {
@@ -191,12 +204,15 @@ class TicketController extends Controller
 
     public function show($id)
     {
-//        $ticket = Ticket::with(['usuario', 'tecnico', 'category', 'type', 'histories' => function($query) {
-//            $query->orderBy('created_at', 'asc'); // Ordena por data crescente
-//        }, 'histories.user'])->findOrFail($id);
+        //        $ticket = Ticket::with(['usuario', 'tecnico', 'category', 'type', 'histories' => function($query) {
+        //            $query->orderBy('created_at', 'asc'); // Ordena por data crescente
+        //        }, 'histories.user'])->findOrFail($id);
         $ticket = Ticket::with([
-            'usuario','tecnico','category','type',
-            'histories' => fn($q) => $q->orderBy('created_at','asc'),
+            'usuario',
+            'tecnico',
+            'category',
+            'type',
+            'histories' => fn($q) => $q->orderBy('created_at', 'asc'),
             'histories.user'
         ])->findOrFail($id);
 
@@ -209,6 +225,7 @@ class TicketController extends Controller
 
 
     // Atribuir técnico
+    // assignTechnician()
     public function assignTechnician(Request $request, $id)
     {
         $request->validate([
@@ -219,19 +236,22 @@ class TicketController extends Controller
         $novoTecnico = User::find($request->tecnico_id)->name;
 
         $ticket->tecnico_id = $request->tecnico_id;
-        $ticket->status = 'andamento'; // Atualiza o status
+        $ticket->status = 'andamento';
         $ticket->save();
 
-        // Registra no histórico
+        // 🔔 Enviar e-mail para o técnico designado
+        Mail::to($ticket->tecnico->email)->send(new TecnicoAlteradoMail($ticket));
+
         TicketHistory::create([
             'ticket_id' => $ticket->id,
             'user_id' => Auth::id(),
             'tipo_acao' => 'atribuicao_tecnico',
-            'descricao' => "Usuário Atribuiu o chamado ao técnico {$novoTecnico}"
+            'descricao' => "Usuário atribuiu o chamado ao técnico {$novoTecnico}"
         ]);
 
         return redirect()->route('tickets.show', $id)->with('success', 'Técnico atribuído com sucesso!');
     }
+
 
     public function updateTechnician(Request $request, $id)
     {
@@ -264,16 +284,18 @@ class TicketController extends Controller
         $ticket = Ticket::find($ticketId);
         $usuario_responsavel = Auth::user()->name;
 
-        $ticket->status = 'resolvido'; // Alterando status para "Concluído"
-        $ticket->descricao_resolucao = $request->descricao_resolucao; // Adicionando a descrição do procedimento realizado
+        $ticket->status = 'resolvido';
+        $ticket->descricao_resolucao = $request->descricao_resolucao;
         $ticket->save();
 
-        // Registra no histórico
+        // 🔔 Enviar e-mail para o usuário dono do chamado
+        Mail::to($ticket->usuario->email)->send(new ChamadoResolvidoMail($ticket));
+
         TicketHistory::create([
             'ticket_id' => $ticket->id,
             'user_id' => Auth::id(),
             'tipo_acao' => 'conclusao_chamado',
-            'descricao' => "Chamado concluído por {$usuario_responsavel}. Procedimento realizado: {$request->descricao_resolucao}"
+            'descricao' => "Chamado concluído por {$usuario_responsavel}. Procedimento: {$request->descricao_resolucao}"
         ]);
 
         return redirect()->route('tickets.show', $ticketId)->with('success', 'Chamado marcado como concluído!');
@@ -284,11 +306,13 @@ class TicketController extends Controller
         $ticket = Ticket::find($ticketId);
         $usuario_responsavel = Auth::user()->name;
 
-        $ticket->status = 'pendente'; // Alterando status para "Pendente"
-        $ticket->pendencia = $request->pendencia; // Adicionando a descrição da pendência
+        $ticket->status = 'pendente';
+        $ticket->pendencia = $request->pendencia;
         $ticket->save();
 
-        // Registra no histórico
+        // 🔔 Enviar e-mail para o usuário dono do chamado
+        Mail::to($ticket->usuario->email)->send(new ChamadoPendenteMail($ticket));
+
         TicketHistory::create([
             'ticket_id' => $ticket->id,
             'user_id' => Auth::id(),
