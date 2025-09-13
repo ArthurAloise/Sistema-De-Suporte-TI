@@ -91,27 +91,29 @@
                 </div>
 
                 <!-- Formulário para atribuir técnico -->
-                @if(!$ticket->tecnico_id)
-                    <div class="card mt-3 shadow-sm">
-                        <div class="card-header bg-secondary text-white">
-                            <h5 class="mb-0">Atribuir Técnico</h5>
+                @if(auth()->user()->hasPermission('alter_tecnico_responsavel'))
+                    @if(!$ticket->tecnico_id)
+                        <div class="card mt-3 shadow-sm">
+                            <div class="card-header bg-secondary text-white">
+                                <h5 class="mb-0">Atribuir Técnico</h5>
+                            </div>
+                            <div class="card-body">
+                                <form action="{{ route('tickets.assign', $ticket->id) }}" method="POST">
+                                    @csrf
+                                    <div class="mb-3">
+                                        <label for="tecnico_id" class="form-label">Selecionar Técnico:</label>
+                                        <select name="tecnico_id" id="tecnico_id" class="form-control" required>
+                                            <option value="" selected disabled>Escolha um técnico</option>
+                                            @foreach($users as $user)
+                                                <option value="{{ $user->id }}">{{ $user->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary w-100">Atribuir Técnico</button>
+                                </form>
+                            </div>
                         </div>
-                        <div class="card-body">
-                            <form action="{{ route('tickets.assign', $ticket->id) }}" method="POST">
-                                @csrf
-                                <div class="mb-3">
-                                    <label for="tecnico_id" class="form-label">Selecionar Técnico:</label>
-                                    <select name="tecnico_id" id="tecnico_id" class="form-control" required>
-                                        <option value="" selected disabled>Escolha um técnico</option>
-                                        @foreach($users as $user)
-                                            <option value="{{ $user->id }}">{{ $user->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <button type="submit" class="btn btn-primary w-100">Atribuir Técnico</button>
-                            </form>
-                        </div>
-                    </div>
+                    @endif
                 @endif
 
                 <!-- Formulário para marcar caso tenha algum impecilho ou pendência para resolver o chamado -->

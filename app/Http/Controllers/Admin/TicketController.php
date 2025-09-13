@@ -267,6 +267,8 @@ class TicketController extends Controller
         $ticket->tecnico_id = $request->tecnico_id;
         $ticket->save();
 
+        Mail::to($ticket->tecnico->email)->send(new TecnicoAlteradoMail($ticket));
+
         // Registra no histórico
         TicketHistory::create([
             'ticket_id' => $ticket->id,
