@@ -37,7 +37,7 @@
             <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
                 <ul class="navbar-nav">
                     <!-- Botão que aparece apenas para Admin -->
-                    @if(auth()->user()->hasRole('Admin'))
+                    @if(auth()->user()->hasRole('Admin') || auth()->user()->hasRole('Tecnico'))
                         <li class="nav-item">
                             <a class="nav-link btn btn-danger text-black fw-bold" href="{{ route('admin.dashboard') }}">
                                 <i class="fa fa-cogs"></i> Painel Administrativo

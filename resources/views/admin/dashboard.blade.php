@@ -53,39 +53,41 @@
 
         <!-- KPIs / Cards (100% responsivo) -->
         <div class="row g-3 row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-3">
-            <div class="col">
-                <div class="card card-hero bg-primary text-white h-100">
-                    <div class="card-body text-center">
-                        <div class="icon-wrap"><i class="fas fa-users"></i></div>
-                        <div class="mt-2 fw-semibold">Usuários</div>
-                        <p class="mb-0">Gerenciar Usuários</p>
-{{--                        <div class="display-6 fw-bold">{{ $userCount }}</div>--}}
-                        <a href="{{ route('users.index') }}" class="btn btn-light w-100 mt-3">Ver Usuários</a>
+            @if(auth()->user()->hasRole('Admin'))
+                <div class="col">
+                    <div class="card card-hero bg-primary text-white h-100">
+                        <div class="card-body text-center">
+                            <div class="icon-wrap"><i class="fas fa-users"></i></div>
+                            <div class="mt-2 fw-semibold">Usuários</div>
+                            <p class="mb-0">Gerenciar Usuários</p>
+                            {{--                        <div class="display-6 fw-bold">{{ $userCount }}</div>--}}
+                            <a href="{{ route('users.index') }}" class="btn btn-light w-100 mt-3">Ver Usuários</a>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="col">
-                <div class="card card-hero bg-success text-white h-100">
-                    <div class="card-body text-center">
-                        <div class="icon-wrap"><i class="fas fa-chart-line"></i></div>
-                        <div class="mt-2 fw-semibold">Relatórios</div>
-                        <p class="mb-0">Gráficos</p>
-                        <a href="#" class="btn btn-light w-100 mt-3">Ver Relatórios</a>
+                <div class="col">
+                    <div class="card card-hero bg-success text-white h-100">
+                        <div class="card-body text-center">
+                            <div class="icon-wrap"><i class="fas fa-chart-line"></i></div>
+                            <div class="mt-2 fw-semibold">Relatórios</div>
+                            <p class="mb-0">Gráficos</p>
+                            <a href="#" class="btn btn-light w-100 mt-3">Ver Relatórios</a>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="col">
-                <div class="card card-hero bg-dark text-white h-100">
-                    <div class="card-body text-center">
-                        <div class="icon-wrap"><i class="fas fa-shield-alt"></i></div>
-                        <div class="mt-2 fw-semibold">Perfis</div>
-                        <p class="mb-0">Gerencie papéis</p>
-                        <a href="{{ route('roles.index') }}" class="btn btn-light w-100 mt-3">Ver Perfis</a>
+                <div class="col">
+                    <div class="card card-hero bg-dark text-white h-100">
+                        <div class="card-body text-center">
+                            <div class="icon-wrap"><i class="fas fa-shield-alt"></i></div>
+                            <div class="mt-2 fw-semibold">Perfis</div>
+                            <p class="mb-0">Gerencie papéis</p>
+                            <a href="{{ route('roles.index') }}" class="btn btn-light w-100 mt-3">Ver Perfis</a>
+                        </div>
                     </div>
                 </div>
-            </div>
+            @endif
 
             <div class="col">
                 <div class="card card-hero bg-warning h-100">
@@ -125,56 +127,58 @@
         <!-- Ações rápidas -->
         <div class="mt-4">
             <div class="row g-3 row-cols-2 row-cols-sm-3 row-cols-lg-6">
-                <div class="col">
-                    <a href="{{ route('types.index') }}" class="text-decoration-none">
-                        <div class="card h-100 shadow-sm">
-                            <div class="card-body text-center">
-                                <h6 class="fw-bold mb-2">Tipos</h6>
-                                <span class="btn btn-outline-primary w-100">Ver</span>
+                @if(auth()->user()->hasRole('Admin'))
+                    <div class="col">
+                        <a href="{{ route('types.index') }}" class="text-decoration-none">
+                            <div class="card h-100 shadow-sm">
+                                <div class="card-body text-center">
+                                    <h6 class="fw-bold mb-2">Tipos</h6>
+                                    <span class="btn btn-outline-primary w-100">Ver</span>
+                                </div>
                             </div>
-                        </div>
-                    </a>
-                </div>
-                <div class="col">
-                    <a href="{{ route('categories.index') }}" class="text-decoration-none">
-                        <div class="card h-100 shadow-sm">
-                            <div class="card-body text-center">
-                                <h6 class="fw-bold mb-2">Categorias</h6>
-                                <span class="btn btn-outline-success w-100">Ver</span>
+                        </a>
+                    </div>
+                    <div class="col">
+                        <a href="{{ route('categories.index') }}" class="text-decoration-none">
+                            <div class="card h-100 shadow-sm">
+                                <div class="card-body text-center">
+                                    <h6 class="fw-bold mb-2">Categorias</h6>
+                                    <span class="btn btn-outline-success w-100">Ver</span>
+                                </div>
                             </div>
-                        </div>
-                    </a>
-                </div>
-                <div class="col">
-                    <a href="{{ route('setores.index') }}" class="text-decoration-none">
-                        <div class="card h-100 shadow-sm">
-                            <div class="card-body text-center">
-                                <h6 class="fw-bold mb-2">Setores</h6>
-                                <span class="btn btn-outline-dark w-100">Ver</span>
+                        </a>
+                    </div>
+                    <div class="col">
+                        <a href="{{ route('setores.index') }}" class="text-decoration-none">
+                            <div class="card h-100 shadow-sm">
+                                <div class="card-body text-center">
+                                    <h6 class="fw-bold mb-2">Setores</h6>
+                                    <span class="btn btn-outline-dark w-100">Ver</span>
+                                </div>
                             </div>
-                        </div>
-                    </a>
-                </div>
-                <div class="col">
-                    <a href="{{ route('admin.logs') }}" class="text-decoration-none">
-                        <div class="card h-100 shadow-sm">
-                            <div class="card-body text-center">
-                                <h6 class="fw-bold mb-2">Logs</h6>
-                                <span class="btn btn-outline-warning w-100">Abrir</span>
+                        </a>
+                    </div>
+                    <div class="col">
+                        <a href="{{ route('admin.logs') }}" class="text-decoration-none">
+                            <div class="card h-100 shadow-sm">
+                                <div class="card-body text-center">
+                                    <h6 class="fw-bold mb-2">Logs</h6>
+                                    <span class="btn btn-outline-warning w-100">Abrir</span>
+                                </div>
                             </div>
-                        </div>
-                    </a>
-                </div>
-                <div class="col">
-                    <a href="{{ route('permissions.index') }}" class="text-decoration-none">
-                        <div class="card h-100 shadow-sm">
-                            <div class="card-body text-center">
-                                <h6 class="fw-bold mb-2">Permissões</h6>
-                                <span class="btn btn-outline-danger w-100">Ver</span>
+                        </a>
+                    </div>
+                    <div class="col">
+                        <a href="{{ route('permissions.index') }}" class="text-decoration-none">
+                            <div class="card h-100 shadow-sm">
+                                <div class="card-body text-center">
+                                    <h6 class="fw-bold mb-2">Permissões</h6>
+                                    <span class="btn btn-outline-danger w-100">Ver</span>
+                                </div>
                             </div>
-                        </div>
-                    </a>
-                </div>
+                        </a>
+                    </div>
+                @endif
                 <div class="col">
                     <a href="{{ route('users.create') }}" class="text-decoration-none">
                         <div class="card h-100 shadow-sm">
