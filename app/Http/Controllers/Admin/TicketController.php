@@ -283,19 +283,19 @@ class TicketController extends Controller
     // Marcar como concluído
     public function markAsCompleted(Request $request, $ticketId)
     {
-        $ticket = Ticket::find($ticketId);
+        $ticket = Ticket::findOrFail($ticketId);
         $usuario_responsavel = Auth::user()->name;
 
         $ticket->status = 'resolvido';
         $ticket->descricao_resolucao = $request->descricao_resolucao;
+        $ticket->resolved_at = now(); // ⬅️ importante p/ métricas
         $ticket->save();
 
-        // 🔔 Enviar e-mail para o usuário dono do chamado
         Mail::to($ticket->usuario->email)->send(new ChamadoResolvidoMail($ticket));
 
         TicketHistory::create([
             'ticket_id' => $ticket->id,
-            'user_id' => Auth::id(),
+            'user_id'   => Auth::id(),
             'tipo_acao' => 'conclusao_chamado',
             'descricao' => "Chamado concluído por {$usuario_responsavel}. Procedimento: {$request->descricao_resolucao}"
         ]);
