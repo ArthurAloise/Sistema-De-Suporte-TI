@@ -292,21 +292,55 @@
                         <tbody>
                         @forelse($tickets as $ticket)
                             @php
-                                $overdue = in_array($ticket->status, ['aberto','andamento']) && $ticket->due_at && now()->gt($ticket->due_at);
-                                $pColor  = $priorityColors[$ticket->prioridade] ?? 'secondary';
+                                // mapa de cor por prioridade
+                                $priorityColors = [
+                                    'muito alta' => 'danger',
+                                    'alta'       => 'warning',
+                                    'media'      => 'primary',
+                                    'baixa'      => 'secondary',
+                                ];
+                                $pColor = $priorityColors[strtolower($ticket->prioridade ?? '')] ?? 'secondary';
+
+                                // SLA / overdue
+                                $now        = now();
+                                $hasDue     = !is_null($ticket->due_at);
+                                $isResolved = !is_null($ticket->resolved_at);
+                                $overdue    = !$isResolved && $hasDue && $now->gt($ticket->due_at)
+                                              && in_array($ticket->status, ['aberto','andamento','pendente']);
                             @endphp
                             <tr class="{{ $overdue ? 'sla-overdue' : '' }}">
                                 <td>#{{ $ticket->id }}</td>
                                 <td class="cell-truncate" title="{{ $ticket->titulo }}">{{ $ticket->titulo }}</td>
                                 <td class="d-none d-lg-table-cell">{{ $ticket->created_at->format('d/m/Y H:i') }}</td>
                                 <td>
-                                    @if($ticket->due_at)
-                                        <div class="fw-semibold">{{ $ticket->due_at->format('d/m H:i') }}</div>
+                                    @if($hasDue)
+                                        <div class="fw-semibold">
+                                            {{ $ticket->due_at->format('d/m H:i') }}
+                                        </div>
                                         <div class="small">
-                                            @if($overdue)
-                                                <span class="badge bg-danger">Estourado ({{ $ticket->due_at->diffForHumans(now(), ['parts'=>2]) }})</span>
+                                            @if($isResolved)
+                                                @php
+                                                    $diffSecs  = abs($ticket->resolved_at->diffInSeconds($ticket->due_at));
+                                                    $diffHuman = \Carbon\CarbonInterval::seconds($diffSecs)->cascade()->forHumans(short: true, parts: 2);
+                                                @endphp
+
+                                                @if($ticket->resolved_at->lte($ticket->due_at))
+                                                    <span class="badge bg-success">Resolvido dentro do SLA</span>
+                                                    <span class="text-muted ms-1">({{ $diffHuman }} de antecedência)</span>
+                                                @else
+                                                    <span class="badge bg-danger">Resolvido após o SLA</span>
+                                                    <span class="text-muted ms-1">(atraso de {{ $diffHuman }})</span>
+                                                @endif
                                             @else
-                                                <span class="badge bg-success">Vence {{ now()->diffForHumans($ticket->due_at, ['parts'=>2]) }}</span>
+                                                @if($now->lte($ticket->due_at))
+                                                    <span class="badge bg-success">
+                            Vence em {{ $now->diffForHumans($ticket->due_at, ['parts'=>2, 'short'=>true]) }}
+                        </span>
+                                                @else
+                                                    <span class="badge bg-danger">
+                            SLA estourado há {{ $ticket->due_at->diffForHumans($now, ['parts'=>2, 'short'=>true]) }}
+                        </span>
+                                                @endif
                                             @endif
                                         </div>
                                     @else

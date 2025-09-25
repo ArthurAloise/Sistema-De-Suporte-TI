@@ -14,11 +14,18 @@ class UpdateTypeRequest extends FormRequest
 
     public function rules(): array
     {
+        $type = $this->route('type');
         return [
-            'nome' => [
-                'required','string','max:255',
-                Rule::unique('types','nome')->ignore($this->route('type')->id),
+//            'nome' => [
+//                'required','string','max:255',
+//                Rule::unique('types','nome')->ignore($this->route('type')->id),
+//            ]
+            'nome' => ['required','string','max:255',
+                Rule::unique('types','nome')
+                    ->where(fn($q) => $q->where('category_id', $this->input('category_id')))
+                    ->ignore($type->id)
             ],
+            'category_id'      => ['required','exists:categories,id'],
             'default_priority' => ['nullable', Rule::in(['baixa','media','alta','muito alta'])],
             'sla_hours'        => ['nullable','integer','min:1','max:10000'],
         ];

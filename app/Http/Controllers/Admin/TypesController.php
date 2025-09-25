@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use App\Models\Type;
 use App\Services\SlaService;
 use Illuminate\Http\Request;
@@ -32,8 +33,9 @@ class TypesController extends Controller
 
     public function create()
     {
+        $categories = Category::orderBy('nome')->get();
         $type = new Type();
-        return view('admin.types.create', compact('type'));
+        return view('admin.types.create', compact('type','categories'));
     }
 
     public function store(StoreTypeRequest $request)
@@ -46,7 +48,8 @@ class TypesController extends Controller
 
     public function edit(Type $type)
     {
-        return view('admin.types.edit', compact('type'));
+        $categories = Category::orderBy('nome')->get();
+        return view('admin.types.edit', compact('type','categories'));
     }
 
     public function update(UpdateTypeRequest $request, Type $type)
@@ -61,5 +64,13 @@ class TypesController extends Controller
     {
         $type->delete();
         return redirect()->route('types.index')->with('success', 'Tipo excluído com sucesso.');
+    }
+
+    public function byCategory(Category $category)
+    {
+        // Se criou o scope to hide "Outros", pode usar: Type::withoutOutros()
+        return Type::where('category_id', $category->id)
+            ->orderBy('nome')
+            ->get(['id','nome']);
     }
 }

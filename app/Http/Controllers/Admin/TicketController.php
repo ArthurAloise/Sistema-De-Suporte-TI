@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Role;
 use App\Models\TicketHistory;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Models\Ticket;
 use App\Models\Category;
 use App\Models\Type;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
 use App\Services\SlaService;
 use Illuminate\Support\Str;
@@ -61,7 +63,10 @@ class TicketController extends Controller
             'titulo'      => 'required|string|max:255',
             'descricao'   => 'required',
             'category_id' => 'required|exists:categories,id',
-            'type_id'     => 'required|exists:types,id',
+            'type_id'     => [
+                'required',
+                Rule::exists('types','id')->where(fn($q) => $q->where('category_id', $request->category_id))
+            ],
         ]);
 
         $type     = Type::findOrFail($request->type_id);
@@ -136,7 +141,10 @@ class TicketController extends Controller
             'titulo'      => 'required|string|max:255',
             'descricao'   => 'required',
             'category_id' => 'required|exists:categories,id',
-            'type_id'     => 'required|exists:types,id',
+            'type_id'     => [
+                'required',
+                Rule::exists('types','id')->where(fn($q) => $q->where('category_id', $request->category_id))
+            ],
         ]);
 
         $ticket = Ticket::findOrFail($id);
@@ -216,11 +224,16 @@ class TicketController extends Controller
             'histories.user'
         ])->findOrFail($id);
 
-        $users = User::where('role_id', '!=', null)->get();
+        // Apenas roles Técnico/Admin e nunca o usuário logado, isso para alterar ou atribuir técnico.
+        $allowedRoleIds = \App\Models\Role::whereIn('name', ['Tecnico', 'Admin'])->pluck('id');
+        $assignableUsers = User::whereIn('role_id', $allowedRoleIds)
+            ->where('id', '!=', Auth::id())
+            ->orderBy('name')
+            ->get();
         $categories = Category::orderBy('nome')->get();  // ⬅️ para o select do modal
         $types = Type::orderBy('nome')->get();
 
-        return view('tickets.show', compact('ticket', 'users', 'categories', 'types'));
+        return view('tickets.show', compact('ticket', 'assignableUsers', 'categories', 'types'));
     }
 
 
@@ -228,25 +241,29 @@ class TicketController extends Controller
     // assignTechnician()
     public function assignTechnician(Request $request, $id)
     {
+        $allowedRoleIds = Role::whereIn('name', ['Tecnico','Admin'])->pluck('id');
         $request->validate([
-            'tecnico_id' => 'required',
+            'tecnico_id' => [
+                'required',
+                Rule::exists('users','id')->where(fn($q) => $q->whereIn('role_id', $allowedRoleIds)),
+            ],
         ]);
 
         $ticket = Ticket::findOrFail($id);
-        $novoTecnico = User::find($request->tecnico_id)->name;
+        $novoTecnico = User::findOrFail($request->tecnico_id);
 
-        $ticket->tecnico_id = $request->tecnico_id;
+        $ticket->tecnico_id = $novoTecnico->id;
         $ticket->status = 'andamento';
         $ticket->save();
 
         // 🔔 Enviar e-mail para o técnico designado
-        Mail::to($ticket->tecnico->email)->send(new TecnicoAlteradoMail($ticket));
+        Mail::to($novoTecnico->email)->send(new TecnicoAlteradoMail($ticket));
 
         TicketHistory::create([
             'ticket_id' => $ticket->id,
             'user_id' => Auth::id(),
             'tipo_acao' => 'atribuicao_tecnico',
-            'descricao' => "Usuário atribuiu o chamado ao técnico {$novoTecnico}"
+            'descricao' => "Usuário atribuiu o chamado ao técnico {$novoTecnico->name}"
         ]);
 
         return redirect()->route('tickets.show', $id)->with('success', 'Técnico atribuído com sucesso!');
@@ -255,49 +272,101 @@ class TicketController extends Controller
 
     public function updateTechnician(Request $request, $id)
     {
+        $allowedRoleIds = \App\Models\Role::whereIn('name', ['Tecnico','Admin'])->pluck('id');
+
         $request->validate([
-            'tecnico_id' => 'required',
+            'tecnico_id' => [
+                'required',
+                Rule::exists('users','id')->where(fn($q) => $q->whereIn('role_id', $allowedRoleIds)),
+            ],
         ]);
 
         $ticket = Ticket::findOrFail($id);
-        $antigoTecnico = $ticket->tecnico ? $ticket->tecnico->name : 'Nenhum';
-        $novoTecnico = User::find($request->tecnico_id)->name;
+        $antigoTecnico = $ticket->tecnico?->name ?? 'Nenhum';
+        $novoTecnico   = User::findOrFail($request->tecnico_id);
 
-
-        $ticket->tecnico_id = $request->tecnico_id;
+        $ticket->tecnico_id = $novoTecnico->id;
         $ticket->save();
 
-        Mail::to($ticket->tecnico->email)->send(new TecnicoAlteradoMail($ticket));
-
-        // Registra no histórico
+        Mail::to($novoTecnico->email)->send(new TecnicoAlteradoMail($ticket));
         TicketHistory::create([
             'ticket_id' => $ticket->id,
-            'user_id' => Auth::id(),
+            'user_id'   => Auth::id(),
             'tipo_acao' => 'alteração_tecnico',
-            'descricao' => "Técnico alterado de {$antigoTecnico} para {$novoTecnico}"
+            'descricao' => "Técnico alterado de {$antigoTecnico} para {$novoTecnico->name}",
         ]);
 
         return redirect()->route('tickets.show', $id)->with('success', 'Técnico atualizado com sucesso!');
     }
 
+    // Para assumir o chamado
+    public function assume(Request $request, $id)
+    {
+        $user = Auth::user();
+        // Só técnico/admin pode assumir
+        if (!($user->hasRole('Tecnico') || $user->hasRole('Admin'))) {
+            abort(403);
+        }
+
+        $ticket = Ticket::findOrFail($id);
+
+        // Se já é o responsável, nada a fazer
+        if ((int)$ticket->tecnico_id === (int)$user->id) {
+            return redirect()->route('tickets.show', $id)->with('info', 'Você já é o responsável por este chamado.');
+        }
+
+        $antigo = $ticket->tecnico?->name ?? 'Nenhum';
+        $ticket->tecnico_id = $user->id;
+        // Se estiver aberto, já coloca em andamento
+        if (in_array($ticket->status, ['aberto','pendente'])) {
+            $ticket->status = 'andamento';
+        }
+        $ticket->save();
+
+        // email + histórico
+        Mail::to($user->email)->send(new TecnicoAlteradoMail($ticket));
+        TicketHistory::create([
+            'ticket_id' => $ticket->id,
+            'user_id'   => $user->id,
+            'tipo_acao' => 'assumir_ticket',
+            'descricao' => "Ticket assumido por {$user->name}. Anterior: {$antigo}",
+        ]);
+
+        return redirect()->route('tickets.show', $id)->with('success', 'Você assumiu este ticket.');
+    }
+
+
     // Marcar como concluído
     public function markAsCompleted(Request $request, $ticketId)
     {
-        $ticket = Ticket::findOrFail($ticketId);
+        $ticket = Ticket::find($ticketId);
         $usuario_responsavel = Auth::user()->name;
 
         $ticket->status = 'resolvido';
         $ticket->descricao_resolucao = $request->descricao_resolucao;
-        $ticket->resolved_at = now(); // ⬅️ importante p/ métricas
+
+        // Salva a Data e hora que foi resolvido.
+        if (!$ticket->resolved_at) {
+            $ticket->resolved_at = now();
+        }
         $ticket->save();
 
+        // 🔔 Enviar e-mail para o usuário dono do chamado
         Mail::to($ticket->usuario->email)->send(new ChamadoResolvidoMail($ticket));
+
+        // Log com status do SLA
+        $slaTxt = 'SLA não definido';
+        if ($ticket->due_at) {
+            $slaTxt = $ticket->resolved_at->lte($ticket->due_at)
+                ? 'Resolvido dentro do prazo de SLA'
+                : 'Resolvido após o prazo de SLA';
+        }
 
         TicketHistory::create([
             'ticket_id' => $ticket->id,
-            'user_id'   => Auth::id(),
+            'user_id' => Auth::id(),
             'tipo_acao' => 'conclusao_chamado',
-            'descricao' => "Chamado concluído por {$usuario_responsavel}. Procedimento: {$request->descricao_resolucao}"
+            'descricao' => "Chamado concluído por {$usuario_responsavel}. Procedimento/Resolução: {$request->descricao_resolucao} | {$slaTxt}",
         ]);
 
         return redirect()->route('tickets.show', $ticketId)->with('success', 'Chamado marcado como concluído!');

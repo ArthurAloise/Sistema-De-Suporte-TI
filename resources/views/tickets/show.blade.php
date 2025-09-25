@@ -1,5 +1,8 @@
 @extends('user.layouts.app')
 @section('content')
+    @php
+        $isTechOrAdmin = auth()->check() && (auth()->user()->hasRole('Tecnico') || auth()->user()->hasRole('Admin'));
+    @endphp
 
     {{--Style para desing do modal de histórico de chamados--}}
     <style>
@@ -62,6 +65,37 @@
                         <p><strong>Prioridade:</strong> {{ ucfirst($ticket->prioridade) }}</p>
                         <p><strong>Aberto por:</strong> {{ $ticket->usuario->name }}</p>
                         <p><strong>Data de Abertura:</strong> {{ $ticket->created_at->format('d/m/Y H:i') }}</p>
+                        <p><strong>Data do Prazo:</strong> {{ $ticket->due_at->format('d/m/Y H:i') }}</p>
+                        {{-- NOVO: Data de Resolução + SLA --}}
+                        @if($ticket->resolved_at)
+                            <p><strong>Data de Resolução:</strong> {{ $ticket->resolved_at->format('d/m/Y H:i') }}</p>
+
+                            @php
+                                $slaDefined = !is_null($ticket->due_at);
+                            @endphp
+
+                            @if($slaDefined)
+                                @php
+                                    // diferença absoluta entre resolved_at e due_at
+                                    $diffMins = $ticket->resolved_at->diffInMinutes($ticket->due_at);
+                                    $diffHuman = \Carbon\CarbonInterval::minutes($diffMins)->cascade()->forHumans(short: true, parts: 2);
+                                @endphp
+
+                                @if($ticket->resolved_at->lte($ticket->due_at))
+                                    <p class="mb-1">
+                                        <span class="badge bg-success">Resolvido dentro do prazo de SLA</span>
+                                        <small class="text-muted ms-2">({{ $diffHuman }} de antecedência)</small>
+                                    </p>
+                                @else
+                                    <p class="mb-1">
+                                        <span class="badge bg-danger">Resolvido após o prazo de SLA</span>
+                                        <small class="text-muted ms-2">(atraso de {{ $diffHuman }})</small>
+                                    </p>
+                                @endif
+                            @else
+                                <p class="mb-1"><span class="badge bg-secondary">SLA não definido</span></p>
+                            @endif
+                        @endif
                         <p>
                             <strong>Status:</strong>
                             @if($ticket->status == 'aberto')
@@ -77,10 +111,14 @@
 
                         @if($ticket->tecnico_id)
                             <div class="d-flex align-items-center justify-content-between">
-                                <p class="mb-0"><strong>Técnico Responsável:</strong> {{ $ticket->tecnico->name }}</p>
-                                @if(auth()->user()->hasPermission('alter_tecnico_responsavel'))
+                                @if($isTechOrAdmin && auth()->id() === $ticket->tecnico_id)
+                                    <p class="mb-0"><strong>Técnico Responsável:</strong> <span class="badge bg-danger">Você é o responsável ({{ $ticket->tecnico->name }})</span></p>
+                                @else
+                                    <p class="mb-0"><strong>Técnico Responsável:</strong> {{ $ticket->tecnico->name }}</p>
+                                @endif
+                                @if(auth()->user()->hasPermission('alter_tecnico_responsavel') && $ticket->status != 'resolvido')
                                     <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editTechnicianModal">
-                                        Alterar Técnico
+                                        Alterar para outro Técnico/Responsável
                                     </button>
                                 @endif
                             </div>
@@ -90,7 +128,39 @@
                     </div>
                 </div>
 
-                <!-- Formulário para atribuir técnico -->
+                @if($isTechOrAdmin)
+                    @if(!$ticket->tecnico_id || $ticket->tecnico_id !== auth()->id()  && $ticket->status != 'resolvido')
+                        <div class="card mt-3 shadow-sm">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0">Assumir Ticket</h5>
+                            </div>
+                            <div class="card-body">
+                                <form action="{{ route('tickets.assume', $ticket->id) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        Assumir Ticket <i class="fas fa-user-check me-1"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    @endif
+                @endif
+
+                {{-- Botão Assumir Ticket para Técnico/Admin --}}
+{{--                @if($isTechOrAdmin)--}}
+{{--                    @if(!$ticket->tecnico_id || $ticket->tecnico_id !== auth()->id())--}}
+{{--                        <form action="{{ route('tickets.assume', $ticket->id) }}" method="POST" class="d-inline">--}}
+{{--                            @csrf--}}
+{{--                            <button type="submit" class="btn btn-sm btn-outline-primary">--}}
+{{--                                <i class="fas fa-user-check me-1"></i> Assumir Ticket--}}
+{{--                            </button>--}}
+{{--                        </form>--}}
+{{--                    @else--}}
+{{--                        <span class="badge bg-info">Você é o responsável</span>--}}
+{{--                    @endif--}}
+{{--                @endif--}}
+
+                {{-- Atribuir Técnico (somente para quem tem permissão e NÃO é técnico/admin) --}}
                 @if(auth()->user()->hasPermission('alter_tecnico_responsavel'))
                     @if(!$ticket->tecnico_id)
                         <div class="card mt-3 shadow-sm">
@@ -101,15 +171,15 @@
                                 <form action="{{ route('tickets.assign', $ticket->id) }}" method="POST">
                                     @csrf
                                     <div class="mb-3">
-                                        <label for="tecnico_id" class="form-label">Selecionar Técnico:</label>
-                                        <select name="tecnico_id" id="tecnico_id" class="form-control" required>
+                                        <label for="tecnico_id_assign" class="form-label">Selecionar Técnico:</label>
+                                        <select name="tecnico_id" id="tecnico_id_assign" class="form-control" required>
                                             <option value="" selected disabled>Escolha um técnico</option>
-                                            @foreach($users as $user)
-                                                <option value="{{ $user->id }}">{{ $user->name }}</option>
+                                            @foreach($assignableUsers as $u)
+                                                <option value="{{ $u->id }}">{{ $u->name }}</option>
                                             @endforeach
                                         </select>
                                     </div>
-                                    <button type="submit" class="btn btn-primary w-100">Atribuir Técnico</button>
+                                    <button type="submit" class="btn btn-secondary w-100">Atribuir Técnico</button>
                                 </form>
                             </div>
                         </div>
@@ -178,11 +248,11 @@
                     <div class="modal-body">
                         <div class="mb-3">
                             <label for="tecnico_id" class="form-label">Selecionar Novo Técnico:</label>
-                            <select name="tecnico_id" id="tecnico_id" class="form-control" required>
+                            <select name="tecnico_id" id="tecnico_id_edit" class="form-control" required>
                                 <option value="" selected disabled>Escolha um técnico</option>
-                                @foreach($users as $user)
-                                    <option value="{{ $user->id }}" {{ $ticket->tecnico_id == $user->id ? 'selected' : '' }}>
-                                        {{ $user->name }}
+                                @foreach($assignableUsers as $u)
+                                    <option value="{{ $u->id }}" {{ $ticket->tecnico_id == $u->id ? 'selected' : '' }}>
+                                        {{ $u->name }}
                                     </option>
                                 @endforeach
                             </select>
@@ -272,9 +342,12 @@
 
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label for="category_id" class="form-label">Categoria</label>
-                                <select id="category_id" name="category_id"
+                                <label for="modal_category_id" class="form-label">Categoria</label>
+                                <select id="modal_category_id" name="category_id"
                                         class="form-select @error('category_id','editTicket') is-invalid @enderror" required>
+                                    <option value="" disabled {{ old('category_id', $ticket->category_id) ? '' : 'selected' }}>
+                                        Selecione
+                                    </option>
                                     @foreach($categories as $c)
                                         <option value="{{ $c->id }}"
                                             {{ (int)old('category_id', $ticket->category_id) === $c->id ? 'selected' : '' }}>
@@ -287,15 +360,10 @@
                             </div>
 
                             <div class="col-md-6">
-                                <label for="type_id" class="form-label">Tipo</label>
-                                <select id="type_id" name="type_id"
-                                        class="form-select @error('type_id','editTicket') is-invalid @enderror" required>
-                                    @foreach($types as $t)
-                                        <option value="{{ $t->id }}"
-                                            {{ (int)old('type_id', $ticket->type_id) === $t->id ? 'selected' : '' }}>
-                                            {{ $t->nome }}
-                                        </option>
-                                    @endforeach
+                                <label for="modal_type_id" class="form-label">Tipo</label>
+                                <select id="modal_type_id" name="type_id"
+                                        class="form-select @error('type_id','editTicket') is-invalid @enderror" required disabled>
+                                    <option value="">Selecione uma categoria primeiro</option>
                                 </select>
                                 @error('type_id','editTicket') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
@@ -330,6 +398,61 @@
             var modal = new bootstrap.Modal(document.getElementById('editTicketModal'));
             modal.show();
             @endif
+            const modalEl = document.getElementById('editTicketModal');
+            if (!modalEl) return;
+
+            const cat = modalEl.querySelector('#modal_category_id');
+            const typ = modalEl.querySelector('#modal_type_id');
+
+            function resetTypes(placeholder) {
+                typ.innerHTML = `<option value="">${placeholder || 'Selecione uma categoria primeiro'}</option>`;
+                typ.disabled = true;
+            }
+
+            async function loadTypes(categoryId, preselectId) {
+                if (!categoryId) { resetTypes(); return; }
+
+                typ.innerHTML = '<option value="">Carregando tipos...</option>';
+                typ.disabled = true;
+
+                try {
+                    const res = await fetch(`{{ url('/api/categories') }}/${categoryId}/types`, {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+                    const data = await res.json();
+
+                    typ.innerHTML = '';
+                    if (!Array.isArray(data) || data.length === 0) {
+                        resetTypes('Nenhum tipo para esta categoria');
+                        return;
+                    }
+
+                    data.forEach(t => {
+                        const opt = document.createElement('option');
+                        opt.value = t.id;
+                        opt.textContent = t.nome;
+                        if (preselectId && String(preselectId) === String(t.id)) opt.selected = true;
+                        typ.appendChild(opt);
+                    });
+
+                    typ.disabled = false;
+                } catch (e) {
+                    resetTypes('Erro ao carregar tipos');
+                    console.error(e);
+                }
+            }
+
+            // Quando o modal abrir, carregue os tipos da categoria atual/old
+            modalEl.addEventListener('shown.bs.modal', function () {
+                const initialCat  = cat.value || '{{ old('category_id', $ticket->category_id) }}';
+                const initialType = '{{ old('type_id', $ticket->type_id) }}';
+                loadTypes(initialCat, initialType);
+            });
+
+            // Quando a categoria mudar dentro do modal
+            cat.addEventListener('change', function () {
+                loadTypes(cat.value, null);
+            });
         });
     </script>
 @endsection

@@ -15,4 +15,9 @@ class Category extends Model
     {
         return $this->hasMany(Ticket::class);
     }
+
+    public function types()
+    {
+        return $this->hasMany(Type::class);
+    }
 }

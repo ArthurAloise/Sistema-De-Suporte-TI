@@ -56,8 +56,12 @@
                         <li><a class="dropdown-item" href="{{ route('user.profile') }}"><i class="fas fa-user-cog"></i> Configurações</a></li>
                         <li><a class="dropdown-item" href="{{ route('user.change-password') }}"><i class="fas fa-key"></i> Alterar Senha</a></li>
                         <li><a class="dropdown-item" href="{{ route('users.index') }}"><i class="fas fa-users"></i> Usuários</a></li>
-                        <li><a class="dropdown-item" href="{{ route('roles.index') }}"><i class="fas fa-id-card"></i> Perfis</a></li>
-                        <li><a class="dropdown-item" href="{{ route('permissions.index') }}"><i class="fas fa-bars"></i> Permissões</a></li>
+                        @if(auth()->user()->hasPermission('acessar_perfis'))
+                            <li><a class="dropdown-item" href="{{ route('roles.index') }}"><i class="fas fa-id-card"></i> Perfis</a></li>
+                        @endif
+                        @if(auth()->user()->hasPermission('acessar_permissoes'))
+                            <li><a class="dropdown-item" href="{{ route('permissions.index') }}"><i class="fas fa-bars"></i> Permissões</a></li>
+                        @endif
 {{--                        <li><a class="dropdown-item" href="{{ route('permissions.index') }}">User: {{ Auth::user()->name }}</a></li>--}}
                         <li>
                             <hr class="dropdown-divider">

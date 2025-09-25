@@ -9,10 +9,15 @@ class Type extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['nome','default_priority','sla_hours'];
+    protected $fillable = ['nome','default_priority','sla_hours','category_id'];
 
     public function tickets()
     {
         return $this->hasMany(Ticket::class);
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
     }
 }

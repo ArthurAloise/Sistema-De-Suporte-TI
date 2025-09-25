@@ -15,7 +15,13 @@ class StoreTypeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nome'             => ['required','string','max:255','unique:types,nome'],
+            //'nome' => ['required','string','max:255','unique:types,nome']
+            'nome'             => ['required','string','max:255',
+                Rule::unique('types','nome')->where(
+                    fn($q) => $q->where('category_id', $this->input('category_id'))
+                )
+            ],
+            'category_id'      => ['required','exists:categories,id'],
             'default_priority' => ['nullable', Rule::in(['baixa','media','alta','muito alta'])],
             'sla_hours'        => ['nullable','integer','min:1','max:10000'],
         ];

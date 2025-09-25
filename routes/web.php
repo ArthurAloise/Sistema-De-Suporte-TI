@@ -101,6 +101,20 @@ Route::post('/tickets/{id}/mark-as-pending', [TicketController::class, 'markAsPe
 Route::post('/tickets/{id}/mark-as-completed', [TicketController::class, 'markAsCompleted'])->name('tickets.markAsCompleted');
 Route::post('/tickets/{id}/update-technician', [TicketController::class, 'updateTechnician'])->name('tickets.updateTechnician');
 
+//Apenas assumir o ticket (sem atribuir a outro técnico)
+Route::post('/tickets/{id}/assume', [TicketController::class, 'assume'])->name('tickets.assume');
+
+Route::middleware(['auth'])->prefix('api')->group(function () {
+    Route::get('/categories/{category}/types', [TypesController::class, 'byCategory'])
+        ->name('api.categories.types');
+    //Por que fora do /admin?
+    //
+    //    Usuários comuns (que vão abrir/editar o ticket) precisam consultar os tipos relacionados.
+    //
+    //Se colocar dentro do grupo admin, a rota herdaria permission:acessar_admin e bloquearia o uso no formulário do usuário.
+    // (dropdown dependente): Categoria -> Tipos
+});
+
 require __DIR__ . '/auth.php';
 
 // Aliases p/ templates do Breeze

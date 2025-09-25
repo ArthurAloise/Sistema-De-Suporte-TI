@@ -26,6 +26,7 @@ class Ticket extends Model
     // Opcional: atalho de leitura
     protected $casts = [
         'due_at' => 'datetime',
+        'resolved_at' => 'datetime',
     ];
 
     public function getIsOverdueAttribute(): bool
