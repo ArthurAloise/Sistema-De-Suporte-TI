@@ -1,31 +1,64 @@
 @extends('admin.layouts.app')
 
 @section('content')
-    <div class="container">
-        <h2>Editar Perfil: {{ $role->name }}</h2>
-        <form action="{{ route('roles.update', $role->id) }}" method="POST">
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10">
+
+      <div class="d-flex align-items-center gap-3 mb-4">
+        <a href="{{ route('roles.index') }}" class="btn btn-outline-secondary border-0" title="Voltar">
+          <i class="fas fa-arrow-left fs-4"></i>
+        </a>
+        <div>
+          <h1 class="fw-bolder text-primary mb-0">Editar Perfil</h1>
+          <p class="text-muted fs-6 mb-0">Modifique o nome e as permissões do perfil <span class="fw-bold">{{ $role->name }}</span>.</p>
+        </div>
+      </div>
+
+      <div class="card shadow-lg border-0 rounded-4">
+        <div class="card-body p-4 p-md-5">
+          <form action="{{ route('roles.update', $role->id) }}" method="POST">
             @csrf
             @method('PUT')
-            <div class="form-group">
-                <label for="name">Nome do Perfil</label>
-                <input type="text" name="name" id="name" value="{{ $role->name }}" class="form-control" required>
+
+            <div class="mb-4">
+              <label for="name" class="form-label fw-bold">Nome do Perfil</label>
+              <input type="text" name="name" id="name"
+                     value="{{ old('name', $role->name) }}"
+                     class="form-control form-control-lg @error('name') is-invalid @enderror" required>
+              @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
-            <div class="form-group">
-                <label for="description">Descrição</label>
-                <input type="text" name="description" id="description" value="{{ $role->description }}" class="form-control">
-            </div>
-            <div class="form-group">
-                <label for="permissions">Permissões</label><br>
+
+            <div class="mb-4">
+              <label class="form-label fw-bold mb-3">Permissões Associadas</label>
+              <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-2">
                 @foreach($permissions as $permission)
-                    <div class="form-check">
-                        <input type="checkbox" name="permissions[]" value="{{ $permission->id }}"
-                               class="form-check-input"
-                               @if(in_array($permission->id, $rolePermissions)) checked @endif>
-                        <label class="form-check-label" for="permissions">{{ $permission->name }}</label>
+                  <div class="col">
+                    <div class="form-check form-switch fs-6">
+                      <input type="checkbox" name="permissions[]" value="{{ $permission->id }}"
+                             class="form-check-input" role="switch" id="perm-{{ $permission->id }}"
+                             @if(in_array($permission->id, $rolePermissions)) checked @endif>
+                      <label class="form-check-label" for="perm-{{ $permission->id }}">{{ $permission->name }}</label>
                     </div>
+                  </div>
                 @endforeach
+              </div>
+              @error('permissions') <div class="text-danger small mt-2">{{ $message }}</div> @enderror
             </div>
-            <button type="submit" class="btn btn-primary">Atualizar</button>
-        </form>
+
+            <div class="d-flex justify-content-between mt-5">
+              <a href="{{ route('roles.index') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-times me-1"></i> Cancelar
+              </a>
+              <button type="submit" class="btn btn-primary fw-bold px-4">
+                <i class="fas fa-save me-1"></i> Atualizar Perfil
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
     </div>
+  </div>
+</div>
 @endsection

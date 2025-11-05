@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">  {{-- ← ADICIONE ESTA LINHA --}}
     <title>Admin - Suporte TI</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
@@ -16,24 +17,20 @@
 </style>
 <nav class="navbar navbar-expand-lg navbar-dark shadow" style="background-color: #ffffff;">
     <div class="container-fluid">
-        <!-- Logo -->
         <a class="navbar-brand d-flex align-items-center" href="{{ route('admin.dashboard') }}">
             <img src="{{ asset('logo_chamado.png') }}" alt="Minha Logo" width="100" class="me-2">
             <span class="fw-bold text-danger">| Painel Administrativo</span>
         </a>
 
-        <!-- Inicio -->
         <a class="nav-link btn text-black fw-bold" href="{{ url('/') }}">
             <i class="fa fa-home"></i> Inicio
         </a>
 
-        <!-- Botão responsivo -->
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
 
-        <!-- Itens da Navbar -->
         <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
             <ul class="navbar-nav">
                 <li class="nav-item">
@@ -42,7 +39,6 @@
                     </a>
                 </li>
 
-                <!-- Menu de Dropdown para o nome do usuário -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle text-black d-flex align-items-center" href="#" id="navbarDropdown" role="button"
                        data-bs-toggle="dropdown" aria-expanded="false">
@@ -62,7 +58,6 @@
                         @if(auth()->user()->hasPermission('acessar_permissoes'))
                             <li><a class="dropdown-item" href="{{ route('permissions.index') }}"><i class="fas fa-bars"></i> Permissões</a></li>
                         @endif
-{{--                        <li><a class="dropdown-item" href="{{ route('permissions.index') }}">User: {{ Auth::user()->name }}</a></li>--}}
                         <li>
                             <hr class="dropdown-divider">
                         </li>
@@ -78,36 +73,38 @@
                 </li>
             </ul>
         </div>
-
-{{--        <div class="collapse navbar-collapse">--}}
-{{--            <ul class="navbar-nav ms-auto">--}}
-{{--                <li class="nav-item">--}}
-{{--                    <a class="nav-link" href="{{ route('users.index') }}">Usuários</a>--}}
-{{--                </li>--}}
-{{--                <li class="nav-item">--}}
-{{--                    <a class="nav-link" href="{{ route('roles.index') }}">Perfis</a>--}}
-{{--                </li>--}}
-{{--                <li class="nav-item">--}}
-{{--                    <a class="nav-link" href="{{ route('permissions.index') }}">Permissões</a>--}}
-{{--                </li>--}}
-{{--                <li class="nav-item">--}}
-{{--                    <a class="nav-link" href="{{ route('permissions.index') }}">User: {{ Auth::user()->name }}</a>--}}
-{{--                </li>--}}
-{{--                <li class="nav-item">--}}
-{{--                    <form action="{{ route('logout') }}" method="POST">--}}
-{{--                        @csrf--}}
-{{--                        <button class="nav-link">Sair</button>--}}
-{{--                    </form>--}}
-{{--                </li>--}}
-{{--            </ul>--}}
-{{--        </div>--}}
     </div>
 </nav>
 
 <div class="container mt-4">
+
+    {{-- CÓDIGO DA MENSAGEM DE SUCESSO ADICIONADO AQUI --}}
+    @if (session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert" id="success-alert">
+            {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+    {{-- FIM DO CÓDIGO DA MENSAGEM --}}
+
     @yield('content')
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+{{-- SCRIPT PARA FAZER A MENSAGEM DESAPARECER SOZINHA --}}
+<script>
+    // Procura pelo alerta de sucesso na página usando o ID que definimos
+    const successAlert = document.getElementById('success-alert');
+
+    // Se o alerta existir, espera 5 segundos e depois o fecha suavemente
+    if (successAlert) {
+        setTimeout(() => {
+            const bsAlert = new bootstrap.Alert(successAlert);
+            bsAlert.close();
+        }, 5000); // 5000 milissegundos = 5 segundos
+    }
+</script>
+@stack('scripts')
 </body>
 </html>
