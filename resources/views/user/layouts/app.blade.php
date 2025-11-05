@@ -3,69 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Usuário </title>
+    <title>Painel do Usuário | Meu Sistema</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-</head>
-<body class="bg-dots">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
     <style>
-        .bg-dots {
-            background-image: url("data:image/svg+xml,%3Csvg width='30' height='30' viewBox='0 0 30 30' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1.22676 0C1.91374 0 2.45351 0.539773 2.45351 1.22676C2.45351 1.91374 1.91374 2.45351 1.22676 2.45351C0.539773 2.45351 0 1.91374 0 1.22676C0 0.539773 0 0 1.22676 0Z' fill='rgba(0,0,0,0.07)'/%3E%3C/svg%3E");
-            background-repeat: repeat;
+        /* Estilos para um visual mais limpo e moderno */
+        body {
+            background-color: #f8f9fa; /* Cinza claro suave, padrão do Bootstrap 'bg-light' */
+            font-family: 'Roboto', sans-serif; /* Fonte mais moderna */
+        }
+        .navbar {
+            /* Sombra mais suave para a navbar */
+            box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075) !important;
+        }
+        .nav-link, .dropdown-item {
+            transition: all 0.2s ease-in-out; /* Transição suave para links */
+        }
+        .main-content {
+            min-height: calc(100vh - 120px); /* Garante que o conteúdo empurre o rodapé para baixo */
+        }
+        .footer {
+            font-size: 0.9rem;
+            color: #6c757d; /* Cor de texto 'muted' */
         }
     </style>
-    <nav class="navbar navbar-expand-lg navbar-dark shadow" style="background-color: #ffffff;">
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top">
         <div class="container-fluid">
-            <!-- Logo -->
             <a class="navbar-brand d-flex align-items-center" href="{{ route('user.dashboard') }}">
                 <img src="{{ asset('logo_chamado.png') }}" alt="Minha Logo" width="100" class="me-2">
-                <span class="fw-bold text-danger">| Painel do Usuário</span>
+                <span class="fw-bold text-dark border-start ps-2">| Painel do Usuário</span>
             </a>
 
-            <!-- Inicio -->
-            <a class="nav-link btn text-black fw-bold" href="{{ url('/') }}">
-                <i class="fa fa-home"></i> Inicio
-            </a>
-
-            <!-- Botão responsivo -->
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
-            <!-- Itens da Navbar -->
-            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-                <ul class="navbar-nav">
-                    <!-- Botão que aparece apenas para Admin -->
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link fw-bold" href="{{ url('/') }}">
+                            <i class="fa fa-home me-1"></i>Início
+                        </a>
+                    </li>
+
                     @if(auth()->user()->hasRole('Admin') || auth()->user()->hasRole('Tecnico'))
-                        <li class="nav-item">
-                            <a class="nav-link btn btn-danger text-black fw-bold" href="{{ route('admin.dashboard') }}">
-                                <i class="fa fa-cogs"></i> Painel Administrativo
+                        <li class="nav-item ms-lg-2">
+                            <a class="btn btn-outline-danger btn-sm" href="{{ route('admin.dashboard') }}">
+                                <i class="fa fa-cogs me-1"></i>Painel Administrativo
                             </a>
                         </li>
                     @endif
 
-                    <!-- Menu de Dropdown para o nome do usuário -->
+                    <li class="nav-item d-none d-lg-block mx-2">
+                        <div class="vr"></div>
+                    </li>
+
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle text-black d-flex align-items-center" href="#" id="navbarDropdown" role="button"
-                           data-bs-toggle="dropdown" aria-expanded="false">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             @if (Auth::user()->profile_picture)
-                                <img src="data:image/jpeg;base64,{{ Auth::user()->profile_picture }}"
-                                     alt="Foto de perfil" class="rounded-circle" width="30" height="30" style="margin-right: 8px;">
-                            @endif
-                            <span>{{ Auth::user()->name }}</span>
+                                <img src="data:image/jpeg;base64,{{ Auth::user()->profile_picture }}" alt="Foto de perfil" class="rounded-circle me-2" width="32" height="32" style="object-fit: cover;">
+                            @else
+                                <i class="fas fa-user-circle fa-2x me-2 text-secondary"></i> @endif
+                            <span class="fw-bold">{{ Auth::user()->name }}</span>
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="{{ route('user.profile') }}"><i class="fas fa-user-cog"></i> Configurações</a></li>
-                            <li><a class="dropdown-item" href="{{ route('user.change-password') }}"><i class="fas fa-key"></i> Alterar Senha</a></li>
-                            <li>
-                                <hr class="dropdown-divider">
-                            </li>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item" href="{{ route('user.profile') }}"><i class="fas fa-user-cog fa-fw me-2"></i>Configurações</a></li>
+                            <li><a class="dropdown-item" href="{{ route('user.change-password') }}"><i class="fas fa-key fa-fw me-2"></i>Alterar Senha</a></li>
+                            <li><hr class="dropdown-divider"></li>
                             <li>
                                 <form action="{{ route('logout') }}" method="POST">
                                     @csrf
                                     <button class="dropdown-item text-danger" type="submit">
-                                        <i class="fas fa-sign-out-alt"></i> Sair
+                                        <i class="fas fa-sign-out-alt fa-fw me-2"></i>Sair
                                     </button>
                                 </form>
                             </li>
@@ -76,11 +93,17 @@
         </div>
     </nav>
 
-    <div class="container mt-4">
-        @yield('content')
-    </div>
+    <main class="main-content">
+        <div class="container py-4">
+            @yield('content')
+        </div>
+    </main>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-@stack('scripts')
+    <footer class="footer text-center py-3 bg-white border-top">
+        © {{ date('Y') }} Meu Sistema de Chamados. Todos os direitos reservados.
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    @stack('scripts')
 </body>
 </html>

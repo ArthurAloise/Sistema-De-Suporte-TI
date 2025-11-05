@@ -2,16 +2,19 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+// 1. IMPORTAR A INTERFACE DE VERIFICAÇÃO DE E-MAIL
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable
+// 2. IMPLEMENTAR A INTERFACE NA CLASSE PARA "LIGAR" A FUNCIONALIDADE
+class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens, HasFactory, Notifiable;
 
+    // ... SEU CÓDIGO 'fillable', 'hidden', 'casts' CONTINUA IGUAL ...
     protected $fillable = [
         'name',
         'email',
@@ -31,6 +34,7 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
 
     public function role()
     {

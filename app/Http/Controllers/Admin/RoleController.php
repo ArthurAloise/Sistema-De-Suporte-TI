@@ -15,78 +15,58 @@ class RoleController extends Controller
         $this->middleware('permission:acessar_perfis');
     }
 
-    // Método para mostrar a listagem de roles
     public function index()
     {
         $roles = Role::all();
         return view('admin.roles.index', compact('roles'));
     }
 
-    // Método para mostrar o formulário de criação de role
     public function create()
     {
-        $permissions = Permission::all();  // Buscar todas as permissões
+        $permissions = Permission::all();
         return view('admin.roles.create', compact('permissions'));
     }
 
-    // Método para salvar a role
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|unique:roles|max:255',
-//            'description' => 'nullable|string',
-            'permissions' => 'array',  // Receber as permissões como array
+            'name'           => 'required|unique:roles|max:255',
+            'permissions'    => 'array',
+            'permissions.*'  => 'integer|exists:permissions,id',
         ]);
 
-        $role = Role::create([
-            'name' => $request->name,
-//            'description' => $request->description,
-        ]);
+        $role = Role::create(['name' => $request->name]);
 
-        // Atribuindo permissões à role
-        if ($request->permissions) {
-            $role->syncPermissions($request->permissions);
-        }
+        $ids = $request->input('permissions', []);
+        $role->permissions()->sync($ids);
 
         return redirect()->route('roles.index')->with('success', 'Perfil criado com sucesso!');
     }
 
-    // Método para editar a role
     public function edit(Role $role)
     {
-        $permissions = Permission::all();  // Buscar todas as permissões
-        $rolePermissions = $role->permissions->pluck('id')->toArray(); // Buscar permissões atuais da role
+        $permissions     = Permission::all();
+        $rolePermissions = $role->permissions->pluck('id')->toArray();
+
         return view('admin.roles.edit', compact('role', 'permissions', 'rolePermissions'));
     }
 
-    // Método para atualizar a role
     public function update(Request $request, Role $role)
     {
         $request->validate([
-            'name' => 'required|max:255|unique:roles,name,' . $role->id,
-//            'description' => 'nullable|string',
-            'permissions' => 'array',
+            'name'           => 'required|max:255|unique:roles,name,' . $role->id,
+            'permissions'    => 'array',
+            'permissions.*'  => 'integer|exists:permissions,id',
         ]);
 
-        $role->update([
-            'name' => $request->name,
-//            'description' => $request->description,
-        ]);
+        $role->update(['name' => $request->name]);
 
-        if ($request->permissions) {
-            // Primeiramente, limpamos as permissões antigas
-            $role->permissions()->detach();
-
-            // Agora, atribuimos as novas permissões
-            foreach ($request->permissions as $permissionId) {
-                $role->permissions()->attach($permissionId);
-            }
-        }
+        $ids = $request->input('permissions', []);
+        $role->permissions()->sync($ids);
 
         return redirect()->route('roles.index')->with('success', 'Perfil atualizado com sucesso!');
     }
 
-    // Método para excluir a role
     public function destroy(Role $role)
     {
         $role->delete();

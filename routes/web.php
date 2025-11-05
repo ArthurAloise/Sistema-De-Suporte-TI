@@ -15,7 +15,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\ReportsController;
 use Illuminate\Support\Facades\Gate;
 
-
 //
 //Route::get('/dashboard', function () {
 //    return view('dashboard');
@@ -31,18 +30,18 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-//DASHBOARD DO USUÁRIO PADRÃO
+// DASHBOARD DO USUÁRIO PADRÃO
 Route::middleware(['auth'])->prefix('user')->group(function () {
     Route::get('/dashboard', [UserDashboardController::class, 'index'])->name('user.dashboard');
 });
 
-//TELAS DO PERFIL DE USUÁRIO
+// TELAS DO PERFIL DE USUÁRIO
 Route::middleware(['auth'])->prefix('user')->group(function () {
     Route::get('/profile', [UserProfileController::class, 'edit'])->name('user.profile');
-    Route::post('/profile/update', [UserProfileController::class, 'update'])->name('user.profile.update');
+    Route::put('/profile/update', [UserProfileController::class, 'update'])->name('user.profile.update');
 });
 
-//TELA PARA O USUÁRIO ALTERAR SUA PRÓPRIA SENHA
+// TELA PARA O USUÁRIO ALTERAR SUA PRÓPRIA SENHA
 Route::middleware(['auth'])->prefix('user')->group(function () {
     Route::get('/change-password', [ChangePasswordController::class, 'edit'])->name('user.change-password');
     Route::post('/change-password', [ChangePasswordController::class, 'update'])->name('user.change-password.update');
@@ -66,28 +65,32 @@ Route::middleware(['auth', 'permission:acessar_admin'])->prefix('admin')->group(
     Route::resource('setores', SetorController::class)
         ->parameters(['setores' => 'setor'])
         ->except(['show']);
+
     // === RELATÓRIOS ===
     Route::prefix('reports')->group(function () {
         // View principal
         Route::get('/', [ReportsController::class, 'index'])->name('reports.index');
 
-        // Tickets – APIs
-        Route::get('/api/tickets/kpis',          [ReportsController::class, 'apiTicketsKpis'])->name('reports.api.tickets.kpis');
-        Route::get('/api/tickets/by-status',     [ReportsController::class, 'apiTicketsByStatus'])->name('reports.api.tickets.by_status');
-        Route::get('/api/tickets/by-priority',   [ReportsController::class, 'apiTicketsByPriority'])->name('reports.api.tickets.by_priority');
-        Route::get('/api/tickets/by-category',   [ReportsController::class, 'apiTicketsByCategory'])->name('reports.api.tickets.by_category');
-        Route::get('/api/tickets/by-type',       [ReportsController::class, 'apiTicketsByType'])->name('reports.api.tickets.by_type');
-        Route::get('/api/tickets/created-daily', [ReportsController::class, 'apiTicketsCreatedDaily'])->name('reports.api.tickets.created_daily');
-        Route::get('/api/tickets/resolved-daily', [ReportsController::class, 'apiTicketsResolvedDaily'])->name('reports.api.tickets.resolved_daily');
-        Route::get('/api/tickets/aging',         [ReportsController::class, 'apiTicketsAging'])->name('reports.api.tickets.aging');
-        Route::get('/api/tickets/sla-monthly',   [ReportsController::class, 'apiSlaHitRateMonthly'])->name('reports.api.tickets.sla_monthly');
+        // Tickets – APIs (existentes)
+        Route::get('/api/tickets/kpis',            [ReportsController::class, 'apiTicketsKpis'])->name('reports.api.tickets.kpis');
+        Route::get('/api/tickets/by-status',       [ReportsController::class, 'apiTicketsByStatus'])->name('reports.api.tickets.by_status');
+        Route::get('/api/tickets/by-priority',     [ReportsController::class, 'apiTicketsByPriority'])->name('reports.api.tickets.by_priority');
+        Route::get('/api/tickets/by-category',     [ReportsController::class, 'apiTicketsByCategory'])->name('reports.api.tickets.by_category');
+        Route::get('/api/tickets/by-type',         [ReportsController::class, 'apiTicketsByType'])->name('reports.api.tickets.by_type');
+        Route::get('/api/tickets/created-daily',   [ReportsController::class, 'apiTicketsCreatedDaily'])->name('reports.api.tickets.created_daily');
+        Route::get('/api/tickets/resolved-daily',  [ReportsController::class, 'apiTicketsResolvedDaily'])->name('reports.api.tickets.resolved_daily');
+        Route::get('/api/tickets/aging',           [ReportsController::class, 'apiTicketsAging'])->name('reports.api.tickets.aging');
+        Route::get('/api/tickets/sla-monthly',     [ReportsController::class, 'apiSlaHitRateMonthly'])->name('reports.api.tickets.sla_monthly');
 
-        // Logs – APIs
-        Route::get('/api/logs/actions',  [ReportsController::class, 'apiLogsTopActions'])->name('reports.api.logs.actions');
-        Route::get('/api/logs/by-day',   [ReportsController::class, 'apiLogsByDay'])->name('reports.api.logs.by_day');
-        Route::get('/api/logs/top-users', [ReportsController::class, 'apiLogsTopUsers'])->name('reports.api.logs.top_users');
-        Route::get('/api/logs/top-routes', [ReportsController::class, 'apiLogsTopRoutes'])->name('reports.api.logs.top_routes');
-        Route::get('/api/logs/methods',  [ReportsController::class, 'apiLogsMethods'])->name('reports.api.logs.methods');
+        // ===== NOVOS: Ranking & SLA =====
+        Route::get('/api/tickets/top-types',        [ReportsController::class, 'apiTopTypes'])->name('reports.api.tickets.top_types');
+        Route::get('/api/tickets/top-categories',   [ReportsController::class, 'apiTopCategories'])->name('reports.api.tickets.top_categories');
+        Route::get('/api/tickets/top-technicians',  [ReportsController::class, 'apiTopTechnicians'])->name('reports.api.tickets.top_technicians');
+        Route::get('/api/tickets/on-time-overdue',  [ReportsController::class, 'apiOnTimeOverdue'])->name('reports.api.tickets.on_time_overdue');
+        Route::get('/api/tickets/top-priorities',   [ReportsController::class, 'apiTopPriorities'])->name('reports.api.tickets.top_priorities');
+
+        // Técnicos Ociosos
+        Route::get('/api/technicians/idle',         [ReportsController::class, 'apiTechniciansIdle'])->name('reports.api.technicians.idle');
 
         // Exports
         Route::get('/export/tickets.csv', [ReportsController::class, 'exportTicketsCsv'])->name('reports.export.tickets.csv');
@@ -96,22 +99,21 @@ Route::middleware(['auth', 'permission:acessar_admin'])->prefix('admin')->group(
 });
 
 Route::resource('tickets', TicketController::class)->middleware('auth');
-Route::post('/tickets/{id}/assign', [TicketController::class, 'assignTechnician'])->name('tickets.assign');
-Route::post('/tickets/{id}/mark-as-pending', [TicketController::class, 'markAsPending'])->name('tickets.markAsPending');
+Route::post('/tickets/{id}/assign',            [TicketController::class, 'assignTechnician'])->name('tickets.assign');
+Route::post('/tickets/{id}/mark-as-pending',   [TicketController::class, 'markAsPending'])->name('tickets.markAsPending');
 Route::post('/tickets/{id}/mark-as-completed', [TicketController::class, 'markAsCompleted'])->name('tickets.markAsCompleted');
 Route::post('/tickets/{id}/update-technician', [TicketController::class, 'updateTechnician'])->name('tickets.updateTechnician');
 
-//Apenas assumir o ticket (sem atribuir a outro técnico)
+// Apenas assumir o ticket (sem atribuir a outro técnico)
 Route::post('/tickets/{id}/assume', [TicketController::class, 'assume'])->name('tickets.assume');
 
 Route::middleware(['auth'])->prefix('api')->group(function () {
-    Route::get('/categories/{category}/types', [TypesController::class, 'byCategory'])
-        ->name('api.categories.types');
-    //Por que fora do /admin?
+    Route::get('/categories/{category}/types', [TypesController::class, 'byCategory'])->name('api.categories.types');
+    // Por que fora do /admin?
     //
     //    Usuários comuns (que vão abrir/editar o ticket) precisam consultar os tipos relacionados.
     //
-    //Se colocar dentro do grupo admin, a rota herdaria permission:acessar_admin e bloquearia o uso no formulário do usuário.
+    // Se colocar dentro do grupo admin, a rota herdaria permission:acessar_admin e bloquearia o uso no formulário do usuário.
     // (dropdown dependente): Categoria -> Tipos
 });
 
