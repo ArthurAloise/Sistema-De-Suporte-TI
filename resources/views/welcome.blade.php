@@ -230,13 +230,6 @@
                         <li class="mb-2"><i class="fas fa-map-marker-alt me-2"></i> Porto Velho/RO</li>
                     </ul>
                 </div>
-
-                <div class="col-md-3 text-md-end">
-                    <h5 class="fw-bold mb-3">Pronto para começar?</h5>
-                    <a href="{{ route('register') }}" class="btn btn-danger btn-lg fw-bold px-4">
-                        <i class="fas fa-user-plus me-1"></i> Crie sua Conta
-                    </a>
-                </div>
             </div>
 
             <div class="text-center text-secondary pt-3 mt-4 border-top border-secondary border-opacity-25">
