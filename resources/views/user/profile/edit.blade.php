@@ -66,7 +66,7 @@
                     <form action="{{ route('user.profile.update') }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
-                        <div class="text-center mb-4">
+                        {{-- <div class="text-center mb-4">
                             <label for="profile_picture" class="d-inline-block">
                                 <div class="profile-picture-container {{ !Auth::user()->profile_picture ? 'profile-picture-placeholder' : '' }}"
                                      onclick="document.getElementById('profile_picture').click();"
@@ -82,7 +82,17 @@
                             <p class="text-muted small mt-2 mb-1">Clique na imagem para alterar</p>
                             <p class="text-danger small mb-0">Formatos permitidos: .png, .jpg, .jpeg, .gif (Até 2MB)</p>
                             <input type="file" name="profile_picture" id="profile_picture" class="form-control d-none" accept=".png, .jpg, .jpeg, .gif">
-                        </div>
+                        </div> --}}
+<div class="text-center mb-4">
+    {{-- Avatar somente visual, sem clique --}}
+    <div class="profile-picture-container profile-picture-placeholder disabled-avatar" title="Foto desativada">
+        <i class="fas fa-user-circle fa-4x"></i>
+    </div>
+
+
+    {{-- Input oculto e desativado (não será enviado) --}}
+    <input type="file" name="profile_picture" id="profile_picture" class="form-control d-none" accept=".png, .jpg, .jpeg, .gif" disabled>
+</div>
 
                         <div class="mb-3">
                             <label for="name" class="form-label fw-bold">Nome</label>
