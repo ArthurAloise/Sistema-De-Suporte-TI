@@ -104,16 +104,6 @@
                                 <a href="{{ route('users.edit', $user->id) }}" class="btn btn-warning btn-sm" title="Editar Usuário">
                                     <i class="fas fa-edit"></i> Editar
                                 </a>
-
-                                <button type="button" class="btn btn-danger btn-sm delete-user-btn"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#confirmDeleteModal"
-                                        data-action="{{ route('users.destroy', $user->id) }}"
-                                        data-username="{{ $user->name }}"
-                                        title="Excluir Usuário">
-                                    <i class="fas fa-trash-alt"></i> Excluir
-                                </button>
-
                                 </td>
                         </tr>
                     @empty

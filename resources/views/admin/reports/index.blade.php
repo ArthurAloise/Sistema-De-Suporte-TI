@@ -120,7 +120,7 @@
             <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm hover:shadow-md transition p-5"><h3 class="font-medium text-gray-800 dark:text-gray-200 mb-3">Tickets por Tipo</h3><canvas id="ch_type"></canvas></div>
             <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm hover:shadow-md transition p-5 md:col-span-2"><h3 class="font-medium text-gray-800 dark:text-gray-200 mb-3">Criados por Dia</h3><canvas id="ch_created"></canvas></div>
             <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm hover:shadow-md transition p-5 md:col-span-2"><h3 class="font-medium text-gray-800 dark:text-gray-200 mb-3">Resolvidos por Dia</h3><canvas id="ch_resolved"></canvas></div>
-            <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm hover:shadow-md transition p-5"><h3 class="font-medium text-gray-800 dark:text-gray-200 mb-3">Envelhecimento (Backlog)</h3><canvas id="ch_aging"></canvas></div>
+            <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm hover:shadow-md transition p-5"><h3 class="font-medium text-gray-800 dark:text-gray-200 mb-3">Chamados em Aberto por Tempo</h3><canvas id="ch_aging"></canvas></div>
             <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm hover:shadow-md transition p-5"><h3 class="font-medium text-gray-800 dark:text-gray-200 mb-3">SLA % por Mês</h3><canvas id="ch_sla"></canvas></div>
         </div>
 
