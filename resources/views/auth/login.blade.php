@@ -98,13 +98,6 @@
                     </div>
                 </form>
 
-                @if (Route::has('register'))
-                    <div class="text-center mt-4">
-                        <p class="text-muted mb-0">Não tem uma conta?</p>
-                        <a href="{{ route('register') }}" class="fw-bold text-decoration-none">Cadastre-se aqui</a>
-                    </div>
-                @endif
-
             </div>
         </div>
     </div>
