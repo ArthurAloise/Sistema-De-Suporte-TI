@@ -44,14 +44,14 @@
                                     <i class="fas fa-edit"></i> Editar
                                 </a>
                                 {{-- Botão que abre o modal de exclusão --}}
-                                <button type="button" class="btn btn-danger btn-sm delete-permission-btn ms-1"
+                                {{-- <button type="button" class="btn btn-danger btn-sm delete-permission-btn ms-1"
                                         data-bs-toggle="modal"
                                         data-bs-target="#confirmDeleteModal"
                                         data-action="{{ route('permissions.destroy', $permission->id) }}"
                                         data-permissionname="{{ $permission->name }}"
                                         title="Excluir Permissão">
                                     <i class="fas fa-trash-alt"></i> Excluir
-                                </button>
+                                </button> --}}
                             </td>
                         </tr>
                     @empty

@@ -39,15 +39,14 @@
                 <a href="{{ route('roles.edit', $role->id) }}" class="btn btn-primary btn-sm" title="Editar Perfil">
                   <i class="fas fa-edit"></i> Editar
                 </a>
-
-                <button type="button" class="btn btn-danger btn-sm delete-role-btn ms-1"
+                {{-- <button type="button" class="btn btn-danger btn-sm delete-role-btn ms-1"
                         data-bs-toggle="modal"
                         data-bs-target="#confirmDeleteModal"
                         data-action="{{ route('roles.destroy', $role->id) }}"
                         data-rolename="{{ $role->name }}"
                         title="Excluir Perfil">
                   <i class="fas fa-trash-alt"></i> Excluir
-                </button>
+                </button> --}}
               </td>
             </tr>
           @empty

@@ -62,14 +62,14 @@
                                     <i class="fas fa-edit"></i> Editar
                                 </a>
                                 {{-- Botão que abre o modal de exclusão --}}
-                                <button type="button" class="btn btn-danger btn-sm delete-setor-btn ms-1"
+                                {{-- <button type="button" class="btn btn-danger btn-sm delete-setor-btn ms-1"
                                         data-bs-toggle="modal"
                                         data-bs-target="#confirmDeleteModal"
                                         data-action="{{ route('setores.destroy', $setor) }}"
                                         data-setorname="{{ $setor->nome }}"
                                         title="Excluir Setor">
                                     <i class="fas fa-trash-alt"></i> Excluir
-                                </button>
+                                </button> --}}
                             </td>
                         </tr>
                     @empty
