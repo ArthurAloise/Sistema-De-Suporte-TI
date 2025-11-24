@@ -7,13 +7,22 @@
                 --card-radius: 0.75rem; /* Bordas mais suaves */
             }
 
-            /* Animação para SLA Vencido */
-            @media (prefers-reduced-motion: reduce) {
-                .sla-overdue { animation: none !important; }
-            }
-            @keyframes blink-red { 0%,100% { background:#fff; } 50% { background:#ffe5e5; } }
-            .sla-overdue { animation: blink-red 1s linear infinite; }
-            .sla-overdue td, .sla-overdue .badge { color:#b00020 !important; }
+/* Destaque visual para linhas com SLA vencido (admin) */
+.sla-overdue {
+    background: linear-gradient(90deg, #fef2f2 0%, #ffffff 45%);
+    border-left: 4px solid #dc2626;
+}
+
+/* Mantém texto normal na linha */
+.sla-overdue td {
+    color: #212529;
+}
+
+/* Deixa os badges do SLA legíveis mesmo na linha destacada */
+.sla-overdue .badge.bg-danger,
+.sla-overdue .badge.bg-success {
+    color: #fff !important;
+}
 
             /* Estilo dos Cards KPI */
             .card-hero {

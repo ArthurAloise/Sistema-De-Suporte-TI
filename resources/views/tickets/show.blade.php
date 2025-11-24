@@ -61,6 +61,39 @@
             gap: 10px;
             transform: translateY(-50%);
         }
+    /* ==== Ajuste do modal de edição no mobile ==== */
+    @media (max-width: 992px) {
+        /* Modal ocupa 100% da largura e altura da tela */
+        #editTicketModal .modal-dialog {
+            margin: 0;
+            height: 100%;
+            max-width: 100%;
+            width: 100%;
+        }
+
+        /* Conteúdo em tela cheia, sem cantos arredondados */
+        #editTicketModal .modal-content {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            border-radius: 0;
+        }
+
+        /* Só o corpo rola, header e footer fixos */
+        #editTicketModal .modal-body {
+            flex: 1 1 auto;
+            overflow-y: auto;
+        }
+
+        /* Botões sempre visíveis no fundo */
+        #editTicketModal .modal-footer {
+            position: sticky;
+            bottom: 0;
+            background-color: #ffffff;
+            z-index: 2;
+        }
+    }
+
     </style>
 
     <div class="container py-4">
@@ -359,7 +392,7 @@
 
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label for="titulo" class="form-label fw-bold">Título</label>
+<label for="titulo" class="form-label fw-bold">Título</label>
                             <input type="text"
                                     id="titulo" name="titulo"
                                     value="{{ old('titulo', $ticket->titulo) }}"

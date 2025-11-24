@@ -14,17 +14,44 @@
             }
 
             /* Animação para chamados com SLA estourado */
-            @keyframes blink-red {
-                0%, 100% { background-color: inherit; }
-                50%      { background-color: #ffe5e5; } /* Vermelho bem claro */
-            }
-            .sla-overdue {
-                animation: blink-red 1.5s linear infinite;
-                font-weight: bold;
-            }
-            .sla-overdue td, .sla-overdue .badge {
-                color: #b00020 !important; /* Cor de texto mais forte para destaque */
-            }
+/* Destaque visual para chamados com SLA estourado (usuário) */
+.sla-overdue {
+    background: linear-gradient(90deg, #fef2f2 0%, #ffffff 45%);
+    border-left: 4px solid #dc2626;
+}
+
+/* Mantém as cores de texto padrão da tabela */
+.sla-overdue td {
+    color: #212529;
+}
+
+/* Chips de SLA (vence em / vencido) */
+.sla-chip-sla {
+    border-radius: 999px;
+    padding: 0.15rem 0.6rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.sla-chip-sla i {
+    font-size: 0.7rem;
+}
+
+/* Chip quando ainda está dentro do prazo */
+.sla-chip-warning {
+    background: #fef3c7;      /* amarelo bem claro */
+    color: #92400e;
+}
+
+/* Chip quando SLA já venceu */
+.sla-chip-overdue {
+    background: #fee2e2;      /* vermelho bem claro */
+    color: #b91c1c;
+}
+
         </style>
 
         <div class="container py-4">
@@ -112,14 +139,43 @@
                                             <tr class="{{ $overdue ? 'sla-overdue' : '' }}">
                                                 <td class="ps-3">#{{ $tickets->id }}</td>
                                                 <td>{{ $tickets->titulo }}</td>
-                                                <td>
-                                                    {{ $tickets->created_at->format('d/m/Y') }}
-                                                    @if($tickets->due_at)
-                                                        <div class="small text-muted">
-                                                            Prazo: {{ $tickets->due_at->format('d/m H:i') }}
-                                                        </div>
-                                                    @endif
-                                                </td>
+<td>
+    {{ $tickets->created_at->format('d/m/Y') }}
+
+    @php
+        $isResolved = in_array($tickets->status, ['resolvido', 'fechado']);
+    @endphp
+
+    @if($tickets->due_at && !$isResolved)
+        @php
+            $now = now();
+            $due = $tickets->due_at;
+            $isOverdueCell = $overdue; // mesma flag usada na <tr>
+
+            // diferença absoluta em segundos
+            $diffSeconds = $now->diffInSeconds($due);
+            // transforma em texto curto tipo "2d 18h"
+            $diffHuman = \Carbon\CarbonInterval::seconds($diffSeconds)
+                            ->cascade()
+                            ->forHumans(short: true, parts: 2);
+        @endphp
+
+        <div class="small mt-1">
+            @if($isOverdueCell)
+                <span class="sla-chip-sla sla-chip-overdue">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    SLA vencido há {{ $diffHuman }}
+                </span>
+            @else
+                <span class="sla-chip-sla sla-chip-warning">
+                    <i class="far fa-clock"></i>
+                    Vence em {{ $diffHuman }}
+                </span>
+            @endif
+        </div>
+    @endif
+</td>
+
                                                 <td>
                                                     @switch(strtolower($tickets->prioridade))
                                                         @case('baixa')
