@@ -100,11 +100,32 @@
                                     <span class="text-muted">—</span>
                                 @endif
                             </td>
-                            <td class="text-center">
-                                <a href="{{ route('users.edit', $user->id) }}" class="btn btn-warning btn-sm" title="Editar Usuário">
-                                    <i class="fas fa-edit"></i> Editar
-                                </a>
-                                </td>
+<td class="text-center">
+    <a href="{{ route('users.edit', $user->id) }}" class="btn btn-warning btn-sm" title="Editar Usuário">
+        <i class="fas fa-edit"></i> Editar
+    </a>
+    @php
+        $totalTickets = $user->tickets_criados_count + $user->tickets_atribuidos_count;
+    @endphp
+
+    @if($totalTickets === 0)
+        {{-- Botão que abre o modal de exclusão (DESCOMENTADO E CONDICIONAL) --}}
+        <button type="button" class="btn btn-danger btn-sm delete-user-btn ms-1"
+                data-bs-toggle="modal"
+                data-bs-target="#confirmDeleteModal"
+                data-action="{{ route('users.destroy', $user->id) }}"
+                data-username="{{ $user->name }}"
+                title="Excluir Usuário">
+            <i class="fas fa-trash-alt"></i> Excluir
+        </button>
+    @else
+        {{-- Mostra um botão desabilitado para clareza --}}
+        <button type="button" class="btn btn-outline-danger btn-sm ms-1" disabled
+                title="Não é possível excluir: Associado a {{ $totalTickets }} ticket(s).">
+            <i class="fas fa-lock"></i>
+        </button>
+    @endif
+</td>
                         </tr>
                     @empty
                         <tr>

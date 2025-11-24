@@ -71,20 +71,27 @@
                                      <span class="text-muted">N/A</span>
                                 @endif
                             </td>
-                            <td class="text-center">
-                                <a href="{{ route('categories.edit', $category) }}" class="btn btn-warning btn-sm" title="Editar Categoria">
-                                    <i class="fas fa-edit"></i> Editar
-                                </a>
-                                {{-- Botão que abre o modal de exclusão --}}
-                                <button type="button" class="btn btn-danger btn-sm delete-category-btn ms-1"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#confirmDeleteModal"
-                                        data-action="{{ route('categories.destroy', $category) }}"
-                                        data-categoryname="{{ $category->nome }}"
-                                        title="Excluir Categoria">
-                                    <i class="fas fa-trash-alt"></i> Excluir
-                                </button>
-                            </td>
+<td class="text-center">
+    <a href="{{ route('categories.edit', $category) }}" class="btn btn-warning btn-sm" title="Editar Categoria">
+        <i class="fas fa-edit"></i> Editar
+    </a>
+
+    {{-- Ocultar/Desativar se houver tickets_count > 0 --}}
+    @if($category->tickets_count === 0)
+        <button type="button" class="btn btn-danger btn-sm delete-category-btn ms-1"
+                data-bs-toggle="modal"
+                data-bs-target="#confirmDeleteModal"
+                data-action="{{ route('categories.destroy', $category) }}"
+                data-categoryname="{{ $category->nome }}"
+                title="Excluir Categoria">
+            <i class="fas fa-trash-alt"></i> Excluir
+        </button>
+    @else
+        <button type="button" class="btn btn-outline-danger btn-sm ms-1" disabled title="Existem {{ $category->tickets_count }} chamados associados.">
+            <i class="fas fa-lock"></i>
+        </button>
+    @endif
+</td>
                         </tr>
                     @empty
                         <tr>

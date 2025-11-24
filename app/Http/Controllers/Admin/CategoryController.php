@@ -19,8 +19,10 @@ class CategoryController extends Controller
     public function index(Request $request)
     {
         $search = trim($request->get('q', ''));
-        $categories = Category::when($search, fn($q) =>
-        $q->where('nome', 'LIKE', "%{$search}%")
+        $categories = Category::when(
+            $search,
+            fn($q) =>
+            $q->where('nome', 'LIKE', "%{$search}%")
         )
             ->orderBy('nome')
             ->paginate(10)
@@ -59,6 +61,12 @@ class CategoryController extends Controller
 
     public function destroy(Category $category)
     {
+        // Verifica se existem tickets associados antes de excluir
+        if ($category->tickets()->exists()) {
+            return redirect()->route('categories.index')
+                ->with('error', "Não foi possível excluir a categoria '{$category->nome}'. Existem tickets associados a ela.");
+        }
+
         $category->delete();
         return redirect()->route('categories.index')->with('success', 'Categoria excluída com sucesso.');
     }

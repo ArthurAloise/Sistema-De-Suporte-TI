@@ -15,15 +15,21 @@ class TypesController extends Controller
     // Opcional: descomente se quiser exigir login
     // public function __construct()
     // {
-    //     $this->middleware('auth');
+    //     $this->middleware('auth');
     // }
 
     public function index(Request $request)
     {
         $search = trim($request->get('q', ''));
-        $types = Type::when($search, fn($q) =>
-        $q->where('nome', 'LIKE', "%{$search}%")
-        )
+
+        // **IMPORTANTE**: Você precisa adicionar withCount('tickets') aqui para a lógica de exclusão no front-end funcionar.
+        // Se a chamada antiga estava funcionando sem o withCount, adicione-o agora.
+        $types = Type::withCount('tickets')
+            ->when(
+                $search,
+                fn($q) =>
+                $q->where('nome', 'LIKE', "%{$search}%")
+            )
             ->orderBy('nome')
             ->paginate(10)
             ->withQueryString();
@@ -35,7 +41,7 @@ class TypesController extends Controller
     {
         $categories = Category::orderBy('nome')->get();
         $type = new Type();
-        return view('admin.types.create', compact('type','categories'));
+        return view('admin.types.create', compact('type', 'categories'));
     }
 
     public function store(StoreTypeRequest $request)
@@ -49,7 +55,7 @@ class TypesController extends Controller
     public function edit(Type $type)
     {
         $categories = Category::orderBy('nome')->get();
-        return view('admin.types.edit', compact('type','categories'));
+        return view('admin.types.edit', compact('type', 'categories'));
     }
 
     public function update(UpdateTypeRequest $request, Type $type)
@@ -62,7 +68,15 @@ class TypesController extends Controller
 
     public function destroy(Type $type)
     {
+        // Verifica se existem tickets associados antes de excluir (Proteção de Backend)
+        if ($type->tickets()->exists()) {
+            return redirect()->route('types.index')
+                ->with('error', "Não foi possível excluir o tipo '{$type->nome}'. Existem tickets associados a ele.");
+        }
+
         $type->delete();
+        // SlaService::forgetType($type->nome); // Opcional: Remova o cache do SLA se necessário
+
         return redirect()->route('types.index')->with('success', 'Tipo excluído com sucesso.');
     }
 
@@ -71,6 +85,6 @@ class TypesController extends Controller
         // Se criou o scope to hide "Outros", pode usar: Type::withoutOutros()
         return Type::where('category_id', $category->id)
             ->orderBy('nome')
-            ->get(['id','nome']);
+            ->get(['id', 'nome']);
     }
 }

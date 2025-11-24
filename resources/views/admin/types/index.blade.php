@@ -79,20 +79,27 @@
                                     <span class="text-muted">N/A</span>
                                 @endif
                             </td>
-                            <td class="text-center">
-                                <a href="{{ route('types.edit', $type) }}" class="btn btn-warning btn-sm" title="Editar Tipo">
-                                    <i class="fas fa-edit"></i> Editar
-                                </a>
-                                {{-- Botão que abre o modal de exclusão --}}
-                                <button type="button" class="btn btn-danger btn-sm delete-type-btn ms-1"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#confirmDeleteModal"
-                                        data-action="{{ route('types.destroy', $type) }}"
-                                        data-typename="{{ $type->nome }}"
-                                        title="Excluir Tipo">
-                                    <i class="fas fa-trash-alt"></i> Excluir
-                                </button>
-                            </td>
+<td class="text-center">
+    <a href="{{ route('types.edit', $type) }}" class="btn btn-warning btn-sm" title="Editar Tipo">
+        <i class="fas fa-edit"></i> Editar
+    </a>
+
+    {{-- Ocultar/Desativar se houver tickets_count > 0 --}}
+    @if($type->tickets_count === 0)
+        <button type="button" class="btn btn-danger btn-sm delete-type-btn ms-1"
+                data-bs-toggle="modal"
+                data-bs-target="#confirmDeleteModal"
+                data-action="{{ route('types.destroy', $type) }}"
+                data-typename="{{ $type->nome }}"
+                title="Excluir Tipo">
+            <i class="fas fa-trash-alt"></i> Excluir
+        </button>
+    @else
+        <button type="button" class="btn btn-outline-danger btn-sm ms-1" disabled title="Existem {{ $type->tickets_count }} chamados associados.">
+            <i class="fas fa-lock"></i>
+        </button>
+    @endif
+</td>
                         </tr>
                     @empty
                         <tr>
