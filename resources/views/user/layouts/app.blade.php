@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}"> {{-- Segurança Adicionada --}}
     <title>Painel do Usuário | Meu Sistema</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 
@@ -12,24 +14,30 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
     <style>
-        /* Estilos para um visual mais limpo e moderno */
+        /* --- ESTILO PADRONIZADO (Igual ao Admin) --- */
         body {
-            background-color: #f8f9fa; /* Cinza claro suave, padrão do Bootstrap 'bg-light' */
-            font-family: 'Roboto', sans-serif; /* Fonte mais moderna */
+            background-color: #f8f9fa; /* Cinza claro suave */
+            font-family: 'Roboto', sans-serif;
         }
+
         .navbar {
-            /* Sombra mais suave para a navbar */
-            box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075) !important;
+            box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075) !important; /* Sombra suave */
         }
+
         .nav-link, .dropdown-item {
-            transition: all 0.2s ease-in-out; /* Transição suave para links */
+            transition: all 0.2s ease-in-out;
         }
+
         .main-content {
-            min-height: calc(100vh - 120px); /* Garante que o conteúdo empurre o rodapé para baixo */
+            min-height: calc(100vh - 120px); /* Garante o footer lá embaixo */
+            padding-bottom: 40px;
         }
+
         .footer {
             font-size: 0.9rem;
-            color: #6c757d; /* Cor de texto 'muted' */
+            color: #6c757d;
+            background-color: #fff;
+            border-top: 1px solid #dee2e6;
         }
     </style>
 </head>
@@ -37,8 +45,9 @@
 
     <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top">
         <div class="container-fluid">
+
             <a class="navbar-brand d-flex align-items-center" href="{{ route('user.dashboard') }}">
-                <img src="{{ asset('logo_chamado.png') }}" alt="Minha Logo" width="100" class="me-2">
+                <img src="{{ asset('logo_chamado.png') }}" alt="Logo" width="100" class="me-2">
                 <span class="fw-bold text-dark border-start ps-2">| Painel do Usuário</span>
             </a>
 
@@ -48,6 +57,7 @@
 
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto align-items-center">
+
                     <li class="nav-item">
                         <a class="nav-link fw-bold" href="{{ url('/') }}">
                             <i class="fa fa-home me-1"></i>Início
@@ -56,27 +66,30 @@
 
                     @if(auth()->user()->hasRole('Admin') || auth()->user()->hasRole('Tecnico'))
                         <li class="nav-item ms-lg-2">
-                            <a class="btn btn-outline-danger btn-sm" href="{{ route('admin.dashboard') }}">
+                            <a class="btn btn-outline-danger btn-sm fw-bold" href="{{ route('admin.dashboard') }}">
                                 <i class="fa fa-cogs me-1"></i>Painel Administrativo
                             </a>
                         </li>
                     @endif
 
                     <li class="nav-item d-none d-lg-block mx-2">
-                        <div class="vr"></div>
+                        <div class="vr h-100"></div>
                     </li>
 
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             @if (Auth::user()->profile_picture)
-                                <img src="data:image/jpeg;base64,{{ Auth::user()->profile_picture }}" alt="Foto de perfil" class="rounded-circle me-2" width="32" height="32" style="object-fit: cover;">
+                                <img src="data:image/jpeg;base64,{{ Auth::user()->profile_picture }}" alt="Foto" class="rounded-circle me-2" width="32" height="32" style="object-fit: cover;">
                             @else
-                                <i class="fas fa-user-circle fa-2x me-2 text-secondary"></i> @endif
-                            <span class="fw-bold">{{ Auth::user()->name }}</span>
+                                <div class="bg-secondary text-white rounded-circle d-flex justify-content-center align-items-center me-2" style="width: 32px; height: 32px;">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                            @endif
+                            <span class="fw-bold text-dark">{{ Auth::user()->name }}</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="{{ route('user.profile') }}"><i class="fas fa-user-cog fa-fw me-2"></i>Configurações</a></li>
-                            <li><a class="dropdown-item" href="{{ route('user.change-password') }}"><i class="fas fa-key fa-fw me-2"></i>Alterar Senha</a></li>
+                            <li><a class="dropdown-item" href="{{ route('user.profile') }}"><i class="fas fa-user-cog fa-fw me-2 text-secondary"></i>Configurações</a></li>
+                            <li><a class="dropdown-item" href="{{ route('user.change-password') }}"><i class="fas fa-key fa-fw me-2 text-secondary"></i>Alterar Senha</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li>
                                 <form action="{{ route('logout') }}" method="POST">
@@ -95,15 +108,36 @@
 
     <main class="main-content">
         <div class="container py-4">
+
+            @if (session('success'))
+                <div class="alert alert-success alert-dismissible fade show shadow-sm border-0" role="alert" id="success-alert">
+                    <i class="fas fa-check-circle me-2"></i> {{ session('success') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
+
             @yield('content')
         </div>
     </main>
 
-    <footer class="footer text-center py-3 bg-white border-top">
-        © {{ date('Y') }} Meu Sistema de Chamados. Todos os direitos reservados.
+    <footer class="footer text-center py-3">
+        <div class="container">
+            © {{ date('Y') }} Meu Sistema de Chamados. Todos os direitos reservados.
+        </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Script para fechar o alerta automaticamente após 5 segundos
+        const successAlert = document.getElementById('success-alert');
+        if (successAlert) {
+            setTimeout(() => {
+                const bsAlert = new bootstrap.Alert(successAlert);
+                bsAlert.close();
+            }, 5000);
+        }
+    </script>
     @stack('scripts')
 </body>
 </html>
